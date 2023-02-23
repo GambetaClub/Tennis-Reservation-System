@@ -7,7 +7,7 @@ COPY ./requirements.txt /requirements.txt
 COPY ./tokeneke /tokeneke
 
 WORKDIR /tokeneke
-EXPOSE 8000
+EXPOSE 8001
 
 RUN python -m venv /py && \
     /py/bin/pip install --upgrade pip && \

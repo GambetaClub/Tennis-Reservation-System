@@ -9,12 +9,10 @@ urlpatterns = [
     path('login', views.login_user, name='login'),
     path('logout', views.logout_user, name='logout'),
     path('edit_all_events', views.edit_all_events, name='edit_all_events'),
-    # Still need to finish the password reset process
     path('reset_password', auth_views.PasswordResetView.as_view(template_name="auth/password_reset.html"), name="reset_password"),
     path('reset_password_sent', auth_views.PasswordResetDoneView.as_view(template_name="auth/password_reset_sent.html"), name="password_reset_done"),
     path('reset/<uidb64>/<token>', auth_views.PasswordResetConfirmView.as_view(template_name="auth/password_reset_form.html"),  name="password_reset_confirm"),
     path('reset_password_complete', auth_views.PasswordResetCompleteView.as_view(template_name="auth/password_reset_done.html"),  name="password_reset_complete"),
-    # Still need to finish the password reset process
     path('create_event', views.create_event, name='create_event'),
     path('create_clinic', views.create_clinic, name='create_clinic'),
     path('edit_event/<int:event_id>', views.edit_event, name='edit_event'),
