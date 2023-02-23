@@ -1,0 +1,28 @@
+{% extends 'auth/base_auth.html' %}
+{% block content %}
+
+{% for message in messages %}
+    {% if message.tags == 'error' %}
+      <div class="alert alert-danger" role="alert">
+          {{message}}
+      </div>
+    {% else %}
+      <div class="alert alert-{{message.tags}}" role="alert">
+          {{message}}
+      </div>
+    {% endif %}
+  {% empty %}
+{% endfor %}
+
+{% load crispy_forms_tags %}  
+
+  <h2>Login</h2>
+    <form method="post" action="{% url 'login' %}">
+      {% csrf_token %}
+      {{ form|crispy }}
+      <button type="submit" class="btn btn-primary">Log In</button>
+    </form>
+
+    <p>You don't have an account? <a href="{% url 'register'%}">Sign up here</a></p>
+    <p>You forgot your password? <a href="{% url 'reset_password'%}">Reset your password here</a></p>
+{%  endblock content %}

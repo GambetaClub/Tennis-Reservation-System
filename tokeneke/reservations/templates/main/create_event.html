@@ -1,0 +1,37 @@
+{% extends  'main/base.html' %}
+
+{% block content %}
+<form method="post" action="{% url 'create_event' %}">
+    <div class="form-container">
+        {% csrf_token %}
+        {{ form.media }}
+        <div class="row justify-content-center">
+            <div class="form-group col-md-6">
+                {{ form.title.label }}
+                {{ form.title }}
+            </div>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="form-group col-md-6">
+                {{ form.description.label }}
+                {{ form.description }}
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="form-group col-md-3">
+                {{ form.gender.label }}
+                {{ form.gender }}
+            </div>
+            <div class="form-group col-md-3">
+                {{ form.team.label }}
+                {{ form.team }}
+            </div>
+        </div>
+
+        <div class="row justify-content-center">
+            <button type="submit" class="btn btn-primary">Create</button>
+        </div>
+    </div>
+    </form>
+{% endblock content %}

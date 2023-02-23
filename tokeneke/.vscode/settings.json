@@ -1,0 +1,29 @@
+{
+    "cSpell.words": [
+        "pytz",
+        "rrules",
+        "Tokeneke"
+    ],
+    "files.associations": {
+        "**/*.html": "html",
+        "**/templates/*/*.html": "django-html",
+        "**/templates/*": "django-txt",
+        "**/requirements{/**,*}.{txt,in}": "pip-requirements"
+    },
+
+    
+
+    "editor.formatOnSave": true,
+    "emmet.includeLanguages": {
+        "django-html": "html"
+    },
+
+    "beautify.language": {
+        "html": [
+            "html",
+            "django-html"
+        ]
+    },
+
+    
+}

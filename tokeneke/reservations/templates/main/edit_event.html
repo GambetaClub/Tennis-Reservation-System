@@ -1,0 +1,35 @@
+{% extends  'main/base.html' %}
+
+{% block head %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/edit_forms.css' %}">
+{% endblock head %}
+
+{% load crispy_forms_tags %}
+{% block content %}
+    <form method="post" class="edit_form" action="{% url 'edit_event' event.id %}">
+        {% csrf_token %}
+        {{ form.media }}
+        {% for field in form %}
+        <div class="form-group">
+            {{ field }}
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary mb-2">Save Event</button>
+    </form>
+
+    {% for clinic in clinics %}
+        Clinic: <a href="{% url 'edit_clinic' clinic.id %}">{{clinic}}</a>
+        {% if clinic.is_active %}
+            <i class='bx bx-check-circle' ></i>
+        {% else %}
+            <i class='bx bxs-no-entry'></i>
+        {% endif %}
+    {% empty %}
+    No clinics
+    {% endfor %}
+    <div class="space_for_nav"></div>
+
+
+
+{% endblock content %}
