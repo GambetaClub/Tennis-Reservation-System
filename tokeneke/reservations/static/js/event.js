@@ -33,7 +33,7 @@ $(document).on('submit', '#dates-form', function(e){
                 icon: 'success',
                 confirmButtonText: 'Thank you!',
               }).then((result) => {
-                window.location.href = "http://127.0.0.1:8000/";
+                window.location.href = document.referrer;
             })
             return false;
 
