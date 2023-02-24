@@ -9,10 +9,11 @@ class TimePickerInput(forms.TimeInput):
         input_type = 'time'
 
 class CreateMemberForm(UserCreationForm):
-    member_n = forms.CharField(max_length=10, widget=forms.TextInput, label="Member #")
+    member_n = forms.CharField(max_length=10, widget=forms.TextInput, label="Member Number")
+    profile_pic = forms.ImageField(required = False, label="Profile Picture")
     class Meta:
         model = Member
-        fields = ['email', 'first_name', 'last_name', 'gender', 'member_n', 'password1', 'password2']
+        fields = ['email', 'first_name', 'last_name', 'profile_pic', 'gender', 'member_n', 'password1', 'password2']
 
 class CreateParticipationForm(forms.ModelForm):
     class Meta:

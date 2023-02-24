@@ -60,7 +60,7 @@ html, body {
 
 body {
   font-family: "DM Sans", sans-serif;
-  overflow: hidden;
+  overflow-x: hidden;
   display: flex;
   justify-content: center;
   background-color: var(--app-container);
@@ -79,18 +79,18 @@ a {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background-color: var(red);
   transition: 0.2s;
-  /* max-width: 1800px; */
 }
+
 .app-container button, .app-container input, .app-container optgroup, .app-container select, .app-container textarea {
   font-family: "DM Sans", sans-serif;
 }
 .app-content {
   display: flex;
   height: 100%;
-  overflow: hidden;
+  overflow-x: hidden;
   padding: 20px 0px 0px 0px;
+  margin-bottom: 1em;
 }
 .app-header {
   display: flex;
@@ -186,6 +186,7 @@ a {
 
 .add-btn {
   color: #fff;
+  font-size: 1.6rem;
   background-color: var(--button-bg);
   padding: 0;
   border: 0;
@@ -371,10 +372,12 @@ a {
   color: var(--main-color);
   margin-left: 8px;
   transition: 0.2s;
+  font-size: 1.5rem;
 }
 .view-btn.active {
   background-color: var(--link-color-active-bg);
   color: var(--link-color-active);
+  font-size: 1.8rem;
 }
 .view-btn:not(.active):hover {
   background-color: var(--link-color-hover);
@@ -496,6 +499,7 @@ a {
 }
 
 .project-boxes {
+  /* margin-bottom: 100px; */
   margin: 0 -8px;
   overflow-y: auto;
 }
@@ -528,10 +532,11 @@ a {
 
 }
 .project-boxes.jsListView .project-box-footer {
-  order: 3;
+  order: 1;
   padding-top: 0;
   flex-direction: column;
   justify-content: flex-start;
+  row-gap: 8px;
 }
 .project-boxes.jsListView .project-box-footer:after {
   display: none;
@@ -599,20 +604,6 @@ a {
   background-color: transparent;
   border: none;
   flex-shrink: 0;
-  /*&:after, &:before {
-    content: '';
-    position: absolute;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background-color: var(--main-color);
-    opacity: .8;
-    left: 50%;
-    transform: translatex(-50%);
-  }
-
-  &:before { top: 0;}
-  &:after { bottom: 0; }*/
 }
 
 .more-wrapper {
@@ -646,6 +637,7 @@ a {
   background-color: #fff;
   margin: 8px 0;
 }
+
 .box-progress-header {
   font-size: 14px;
   font-weight: 700;
@@ -681,8 +673,8 @@ a {
   align-items: center;
 }
 .participants img {
-  width: 20px;
-  height: 20px;
+  width: 1.7rem;
+  height: 1.7rem;
   border-radius: 50%;
   overflow: hidden;
   -o-object-fit: cover;
@@ -693,8 +685,8 @@ a {
 }
 
 .add-participant {
-  width: 20px;
-  height: 20px;
+  width: 1.7rem;
+  height: 1.7rem;
   border-radius: 50%;
   border: none;
   background-color: rgba(255, 255, 255, 0.6);
@@ -705,9 +697,15 @@ a {
   padding: 0;
 }
 
+.add-participant i {
+  font-size: 20px;
+  margin-top: 5px;
+}
+
 .days-left {
   background-color: rgba(255, 255, 255, 0.6);
   font-size: 12px;
+  text-align: center;
   border-radius: 20px;
   flex-shrink: 0;
   padding: 6px 16px;
@@ -755,21 +753,7 @@ a {
   }
 }
 @media screen and (max-width: 880px) {
-  .messages-section {
-    transform: translateX(100%);
-    position: absolute;
-    opacity: 0;
-    top: 0;
-    z-index: 2;
-    height: 100%;
-    width: 100%;
-  }
-  .messages-section .messages-close {
-    display: block;
-  }
-  .messages-btn {
-    display: flex;
-  }
+
 }
 @media screen and (max-width: 720px) {
   .app-name, .profile-btn span {
@@ -876,4 +860,5 @@ a {
     right: 2px;
     top: 10px;
   }
+
 }/*# sourceMappingURL=home.css.map */

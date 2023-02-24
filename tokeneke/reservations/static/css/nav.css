@@ -96,6 +96,7 @@ div.label {
     box-shadow: 0 8px 24px hsla(228deg, 81%, 24%, 0.15);
     width: 90%;
     padding: 30px 40px;
+    max-height: 100px;
     border-radius: 1rem;
     left: 0;
     right: 0;
@@ -142,7 +143,6 @@ div.label {
   .nav__list {
     width: 600px;
     column-gap: 5rem !important;
-    
   }
   .nav__list i {
     font-size: 2.0rem !important;

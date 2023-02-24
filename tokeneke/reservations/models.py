@@ -2,9 +2,6 @@ from django.db import models
 from .validators import validate_percentage
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-from django.shortcuts import get_object_or_404
 import recurrence.fields
 from django.utils.timezone import make_aware
 from django.utils import timezone
@@ -67,13 +64,14 @@ class Member(AbstractBaseUser, PermissionsMixin):
     ]
 
     email = models.EmailField(_('email address'), unique=True)
-    member_n = models.CharField(max_length=5, blank=True)
+    member_n = models.CharField(max_length=10, blank=True)
     first_name = models.CharField(max_length=150, blank=True)
     last_name = models.CharField(max_length=150, blank=True)
     level = models.IntegerField(validators=[validate_percentage], null=True)
     start_date = models.DateTimeField(default=timezone.now)
     gender = models.CharField(max_length=7, choices=GENDER_CHOICES)
     team = models.CharField(max_length=7, choices=TEAM_CHOICES, blank=True)
+    profile_pic = models.ImageField(default='profile_pics/default.jpeg', upload_to='profile_pics')
     is_playing = models.BooleanField(default=True)
     is_active =  models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -105,9 +103,6 @@ class Member(AbstractBaseUser, PermissionsMixin):
             events_ids.add(part.get_event().id)
         query_fut_events = Event.objects.filter(id__in=events_ids)
         return query_fut_events
-    
-    def get_profile_pict_url(self):
-        return NotImplementedError
 
     def get_level(self):
         if self.level:
@@ -159,6 +154,7 @@ class Event(models.Model):
     def __str__(self):
         return self.title
 
+
     def get_fut_dates(self, number=40):
         # Returns a list of the future Dates of the Event's Clinics
         clinics = Clinic.objects.filter(event__id = self.id)
@@ -171,11 +167,18 @@ class Event(models.Model):
                 # Returns the last date if there are no future dates
                 return Date.objects.filter(clinic__event__id=self.id).order_by('-datetime_start')[:number]
         return []
+    
+    def get_next_date(self):
+        """
+        Returns the next single date of the Event. If there are none,
+        it returns None.
+        """
+        return next(iter(self.get_fut_dates(1)), None)
         
     def print_fut_date(self):
         # Returns the future Date formatted date
         try:
-            date  = self.get_fut_dates(1)[0].get_datetime_start()
+            date  = self.get_next_date().get_datetime_start()
             return date.strftime('%A, %b %-d')
         except:
             return "No more clinics"
@@ -183,7 +186,7 @@ class Event(models.Model):
     def get_remaining_days(self):
         # Returns a string of the remaining days for the fut Date
         try:
-            remaining = (self.get_fut_dates(1)[0].datetime_start - timezone.now()).days + 1
+            remaining = (self.get_next_date().datetime_start - timezone.now()).days + 1
             if remaining < 0:
                 if remaining == -1:
                     remaining = "Yesterday"
@@ -201,9 +204,13 @@ class Event(models.Model):
 
     def get_fullness(self):
         # Returns the fullness of the fut Date
-        fut_date = next(iter(self.get_fut_dates(1)), None)
+        fut_date = self.get_next_date()
         if fut_date:
             return fut_date.get_cap_pct()
+        
+    def get_participants(self):
+        participants = self.get_next_date().get_participants()
+        return participants
 
 class Clinic(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
@@ -322,8 +329,6 @@ class Date(models.Model):
     def get_participants(self):
         # Returns a list with all the participants of the date
         members = Member.objects.filter(participation__date__id=self.id).order_by('-level')
-        # for member in members:
-        #     print(member.level)
         return members
 
     def get_datetime_start(self):
