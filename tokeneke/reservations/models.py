@@ -208,9 +208,18 @@ class Event(models.Model):
         if fut_date:
             return fut_date.get_cap_pct()
         
+    def get_rem_spots(self):
+        # Returns the remaining spots available
+        fut_date = self.get_next_date()
+        if fut_date:
+            return fut_date.get_rem_spots()
+        
     def get_participants(self):
-        participants = self.get_next_date().get_participants()
-        return participants
+        return self.get_next_date().get_participants()
+    
+    def get_six_participants(self):
+        return self.get_next_date().get_participants()
+    
 
 class Clinic(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
@@ -296,10 +305,6 @@ class Clinic(models.Model):
             return str("No event yet - " + self.get_dates_desc())
 
 
-# @receiver(post_save, sender=Clinic, dispatch_uid="generate_date_instances")
-# def update_stock(sender, instance, **kwargs):
-#     instance.update_date_instances(35)
-
 class Date(models.Model):
     clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE)
     datetime_start = models.DateTimeField(blank=False, null=False)
@@ -357,11 +362,12 @@ class Date(models.Model):
     def get_capacity(self):
         return Clinic.objects.filter(date__id=self.id)[0].capacity
 
-    def get_spots_left(self):
+    def get_rem_spots(self):
         return self.get_capacity() - self.get_registered_count()
         
     def get_cap_pct(self):
-        return '{:.0%}'.format(self.get_spots_left()/ self.get_capacity())
+        return '{:.0%}'.format(self.get_rem_spots()/ self.get_capacity())
+
 
 class Participation(models.Model):
     member = models.ForeignKey(Member, on_delete=models.CASCADE)

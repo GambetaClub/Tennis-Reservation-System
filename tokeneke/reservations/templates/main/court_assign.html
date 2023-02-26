@@ -79,7 +79,7 @@
                 {% endif %}
                 <div id="{% cycle 'player1' 'player2' 'player3' 'player4' %}">
                     <b class="avatar_label">{{ player }}</b>
-                    <img src="{{ user.profile_pic.url }}" />
+                    <img src="{{ player.profile_pic.url }}" />
                 </div>
                 {% if forloop.counter|divisibleby:4 or forloop.last %}
             </div>

@@ -57,7 +57,7 @@
     </div>
 </form>
 
-<ul>
+<ul class="clinic_dates">
     {% for date in dates %}
     <li>
         <a href="{% url 'edit_date' date.id %}">{{date}}</a>

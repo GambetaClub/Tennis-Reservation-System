@@ -658,6 +658,12 @@ a {
   padding-top: 16px;
   position: relative;
 }
+
+.ignore-css{
+  all:unset !important;
+}
+
+
 .project-box-footer:after {
   content: "";
   position: absolute;
@@ -669,12 +675,17 @@ a {
 }
 
 .participants {
-  display: flex;
+  display: inline-flex;
+  margin-left: 2px;
+  margin-right: 2px;
+  overflow: hidden;
   align-items: center;
 }
 .participants img {
-  width: 1.7rem;
-  height: 1.7rem;
+  width: 30px;
+  height: 30px;
+  min-height: 25px;
+  min-width: 25px;
   border-radius: 50%;
   overflow: hidden;
   -o-object-fit: cover;
@@ -685,12 +696,14 @@ a {
 }
 
 .add-participant {
-  width: 1.7rem;
-  height: 1.7rem;
+  min-width:30px !important;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   border: none;
   background-color: rgba(255, 255, 255, 0.6);
-  margin-left: 6px;
+  margin-left: 4px;
+  margin-right: 4px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -708,6 +721,7 @@ a {
   text-align: center;
   border-radius: 20px;
   flex-shrink: 0;
+  max-height: 30px !important;
   padding: 6px 16px;
   font-weight: 700;
   color: var(--club-color);
@@ -755,6 +769,7 @@ a {
 @media screen and (max-width: 880px) {
 
 }
+
 @media screen and (max-width: 720px) {
   .app-name, .profile-btn span {
     display: none;
@@ -769,6 +784,7 @@ a {
   }
   .app-header-right button {
     margin-left: 4px;
+    font-size: 1.2rem;
   }
 
 }
