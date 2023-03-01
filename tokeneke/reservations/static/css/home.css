@@ -4,12 +4,6 @@
   box-sizing: border-box;
 }
 
-main { 
-  width: 90% !important;
-}
-
-
-
 :root {
   --app-container: #f3f6fd;
   --main-color: #1f1c2e;
@@ -27,8 +21,14 @@ main {
   --button-bg: #1f1c24;
   --search-area-bg: #fff;
   --star: #1ff1c2e;
-  --message-btn: #fff;
+  --message-btn: rgba(255,255,255,1);
   --club-color: #4067f9;
+  --men-color: #4067f9;
+  --men-bg-color: #4067f9;
+  --ladies-color: #df3670;
+  --ladies-bg-color: #ffd3e2;
+  --mixed-color: #ff942e;
+  --mixed-bg-color: #fee4cb;
 }
 
 .dark:root {
@@ -80,6 +80,7 @@ a {
   flex-direction: column;
   height: 100%;
   transition: 0.2s;
+  padding: 0 0;
 }
 
 .app-container button, .app-container input, .app-container optgroup, .app-container select, .app-container textarea {
@@ -90,7 +91,6 @@ a {
   height: 100%;
   overflow-x: hidden;
   padding: 20px 0px 0px 0px;
-  margin-bottom: 1em;
 }
 .app-header {
   display: flex;
@@ -114,6 +114,7 @@ a {
   width: 26px;
   height: 2px;
   border-radius: 4px;
+  margin-right: 1rem;
   background-color: var(--main-color);
   position: relative;
 }
@@ -384,122 +385,7 @@ a {
   color: var(--link-color-active);
 }
 
-.messages-section {
-  flex-shrink: 0;
-  padding-bottom: 32px;
-  background-color: var(--projects-section);
-  margin-left: 24px;
-  flex: 1;
-  width: 100%;
-  border-radius: 30px;
-  position: relative;
-  overflow: auto;
-  transition: all 300ms cubic-bezier(0.19, 1, 0.56, 1);
-}
-.messages-section .messages-close {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 3;
-  border: none;
-  background-color: transparent;
-  color: var(--main-color);
-  display: none;
-}
-.messages-section.show {
-  transform: translateX(0);
-  opacity: 1;
-  margin-left: 0;
-}
-.messages-section .projects-section-header {
-  position: -webkit-sticky;
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  padding: 32px 24px 0 24px;
-  background-color: var(--projects-section);
-}
-
-.message-box {
-  border-top: 1px solid var(--message-box-border);
-  padding: 16px;
-  display: flex;
-  align-items: flex-start;
-  width: 100%;
-}
-.message-box:hover {
-  background-color: var(--message-box-hover);
-  border-top-color: var(--link-color-hover);
-}
-.message-box:hover + .message-box {
-  border-top-color: var(--link-color-hover);
-}
-.message-box img {
-  border-radius: 50%;
-  -o-object-fit: cover;
-     object-fit: cover;
-  width: 40px;
-  height: 40px;
-}
-
-.message-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-}
-.message-header .name {
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 700;
-  color: var(--main-color);
-  margin: 0;
-}
-
-.message-content {
-  padding-left: 16px;
-  width: 100%;
-}
-
-.star-checkbox input {
-  opacity: 0;
-  position: absolute;
-  width: 0;
-  height: 0;
-}
-.star-checkbox label {
-  width: 24px;
-  height: 24px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-}
-.dark .star-checkbox {
-  color: var(--secondary-color);
-}
-.dark .star-checkbox input:checked + label {
-  color: var(--star);
-}
-.star-checkbox input:checked + label svg {
-  fill: var(--star);
-  transition: 0.2s;
-}
-
-.message-line {
-  font-size: 14px;
-  line-height: 20px;
-  margin: 8px 0;
-  color: var(--secondary-color);
-  opacity: 0.7;
-}
-.message-line.time {
-  text-align: right;
-  margin-bottom: 0;
-}
-
 .project-boxes {
-  /* margin-bottom: 100px; */
   margin: 0 -8px;
   overflow-y: auto;
 }
@@ -529,7 +415,6 @@ a {
 }
 .project-boxes.jsListView .project-box-header {
   order: 2;
-
 }
 .project-boxes.jsListView .project-box-footer {
   order: 1;
@@ -561,22 +446,59 @@ a {
   flex: 1;
 }
 
+
 .project-box {
-  --main-color-card: #dbf6fd;
   border-radius: 30px;
   padding: 16px;
-  background-color: var(--main-color-card);
 }
+
+.men {
+  background-color: #d5deff;
+}
+
+.men span.box-progress {
+  background-color: var(--men-bg-color);
+}
+
+.men a {
+  color: var(--men-color);
+}
+
+.ladies {
+  background-color: var(--ladies-bg-color);
+}
+
+.ladies span.box-progress {
+  background-color: var(--ladies-color);
+}
+
+.ladies a {
+  color: var(--ladies-color);
+}
+
+.mixed {
+  background-color: var(--mixed-bg-color);
+}
+
+.mixed span.box-progress {
+  background-color: var(--mixed-color);
+}
+
+.mixed a {
+  color: var(--mixed-color)
+}
+
 .project-box-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
-  color: var(--main-color);
+  color: #0000;
 }
+
 .project-box-header span {
   color: #4A4A4A;
-  font-weight: bold;
+  font-weight: lighter;
   opacity: 0.7;
   font-size: 16px;
   line-height: 13px;
@@ -607,17 +529,19 @@ a {
 }
 
 .more-wrapper {
-  position: relative;
+  font-size: 25px;
 }
 
 .box-content-header {
+  color: black;
   font-size: 18px;
   line-height: 24px;
-  font-weight: 700;
+  font-weight: 600;
   opacity: 0.7;
 }
 
 .box-content-subheader {
+  color: black;
   font-size: 16px;
   line-height: 21px;
   opacity: 0.7;
@@ -640,7 +564,7 @@ a {
 
 .box-progress-header {
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 400;
   line-height: 16px;
   margin: 0;
 }
@@ -657,10 +581,6 @@ a {
   justify-content: space-between;
   padding-top: 16px;
   position: relative;
-}
-
-.ignore-css{
-  all:unset !important;
 }
 
 
@@ -775,16 +695,13 @@ a {
     display: none;
   }
   .add-btn, .notification-btn, .mode-switch {
-    width: 20px;
-    height: 20px;
+    width: 32px;
+    height: 32px;
   }
-  .add-btn svg, .notification-btn svg, .mode-switch svg {
-    width: 16px;
-    height: 16px;
-  }
+
   .app-header-right button {
     margin-left: 4px;
-    font-size: 1.2rem;
+    font-size: 1.4rem;
   }
 
 }
@@ -829,9 +746,10 @@ a {
     padding: 24px 16px 0 16px;
   }
   .profile-btn img {
-    width: 24px;
-    height: 24px;
+    width: 32px;
+    height: 32px;
   }
+
   .app-header {
     padding: 10px;
   }
@@ -847,9 +765,6 @@ a {
   }
   .search-input {
     font-size: 14px;
-  }
-  .messages-btn {
-    top: 48px;
   }
   .box-content-subheader {
     font-size: 15px;

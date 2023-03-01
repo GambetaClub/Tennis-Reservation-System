@@ -50,17 +50,22 @@ div.label {
 }
 
 /*=============== NAV ===============*/
-.container {
-  margin-left: 1rem;
-  margin-right: 1rem;
-}
 
 .section {
-  padding: 2rem 0;
+  padding: 1rem 2rem;
+  overflow-x: hidden;
+  width: 100%;
+  min-width: 95% !important;
+  justify-content: center;
 }
 
 .nav__list a, .nav__list a:visited, .nav__list a:hover {
   color: var(--text-color);
+  text-decoration: none;
+}
+
+.nav__list a:hover {
+  color: var(--first-color );
 }
 
 .nav__list a span, .nav__list a span:visited, .nav__list a span:hover {
@@ -75,12 +80,8 @@ div.label {
 
 /* When nav is on the bottom with the full width */
 @media screen and (max-width: 767px) {
-
-  .container {
-    margin-right: 0px;
-    margin-left: 0px;
-    margin-bottom: 75px;
-    max-width: 800px;
+  .section {
+    margin-bottom: 120px;
   }
 
   .space_for_nav {
@@ -132,9 +133,7 @@ div.label {
 
 /* When nav is at the bottom with a larger height */
 @media screen and (max-width: 520px) {
-  .container {
-    margin-bottom: 55px;
-  }
+
 }
 
 /* When nav is at the bottom very slim. Max width 320 px */
@@ -161,10 +160,6 @@ div.label {
 
 /* When the nav is on the left */
 @media screen and (min-width: 767px) {
-  .container {
-    margin-left: 7rem;
-    margin-right: 1.5rem;
-  }
   .nav {
     position: fixed;
     left: 0;
@@ -176,6 +171,11 @@ div.label {
     transition: 0.3s;
     z-index: 1000 !important;
   }
+
+  .section {
+    margin-left: 84px;
+  }
+
 
   .nav__logo, .nav__logo:visited, .nav__logo:hover{
     font-size: 20px;
@@ -193,6 +193,7 @@ div.label {
     color: var(--title-color);
     font-weight: 800;
   }
+  
   .nav__logo, .nav__link {
     align-items: center;
     -moz-column-gap: 1.4rem;

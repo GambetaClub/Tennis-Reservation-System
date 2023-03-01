@@ -135,7 +135,17 @@ def edit_event(request, event_id):
         form.save()
         messages.success(request, f"You edited the event: {event.title}.")
         return redirect('home')
-    return render(request, 'main/edit_event.html', {'event': event, 'clinics': clinics, 'form': form}) 
+    return render(request, 'main/edit_event.html', {'event': event, 'clinics': clinics, 'form': form})
+
+@login_required
+def edit_profile(request):
+    member = request.user
+    form = CreateMemberForm(request.POST or None, instance=member)
+    if form.is_valid():
+        form.save()
+        messages.success(request, f"You edited your profile.")
+        return redirect('home')
+    return render(request, 'main/edit_profile.html', {'form': form})  
 
 
 @login_required

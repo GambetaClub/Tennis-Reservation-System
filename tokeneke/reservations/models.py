@@ -175,7 +175,7 @@ class Event(models.Model):
         """
         return next(iter(self.get_fut_dates(1)), None)
         
-    def print_fut_date(self):
+    def print_next_date(self):
         # Returns the future Date formatted date
         try:
             date  = self.get_next_date().get_datetime_start()
@@ -278,9 +278,9 @@ class Clinic(models.Model):
             to_create = list(set(self.recurrences.occurrences(dtend = date_limit)) - set(old_occurrences))[:limit]
             # Based on the sets, to_delete only has the dates that have been removed.
             to_delete = list(set(old_occurrences) - set(self.recurrences.occurrences(dtend = date_limit_deletion)))
-            
             for date in to_delete:
                 datetime_start = make_date_aware(date.replace(hour=self.start_time.hour, minute=self.start_time.minute, second=0, microsecond=0))
+                print(datetime_start)
                 date = self.get_date_by_datetime(datetime_start)
                 if date:
                     date.delete()

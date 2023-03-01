@@ -1,39 +1,20 @@
 {% extends  'main/base.html' %}
-
 {% load crispy_forms_tags %}
 {% block content %}
-
-{% comment %} <form method="post" action="{% url 'edit_clinic' clinic.id %}">
-    {% csrf_token %}
-    {{ form.media }}
-        {% for field in form %}
-        <div class="form-group">
-            {{ field }}
-        </div>
-        {% endfor %}
-        <button type="submit" class="btn btn-primary mb-2">Save Clinic</button>
-    </form> {% endcomment %}
-
-
 Date Clinic: <a href="{% url 'edit_clinic' clinic.id %}">{{clinic}}</a>
 <form class="edit_form" method="post" action="{% url 'edit_date' date.id %}">
-    {% csrf_token %}
-    {{ form.media }}
-    {% for field in form %}
-        <div class="form-group">
-            {{ field }}
-        </div>
-    {% endfor %}
-    <button type="submit">Submit</button>
+  {% csrf_token %}
+  {{ form.media }}
+  {% for field in form %}
+  <div class="form-group">
+    {{ field }}
+  </div>
+  {% endfor %}
+  <button type="submit">Submit</button>
 </form>
-
 <ul>
-    {% for participant in participants %}
-    <li>{{participant}}</li>
-    {% endfor %}
+  {% for participant in participants %}
+  <li>{{participant}}</li>
+  {% endfor %}
 </ul>
-
-<div class="space_for_nav"></div>
-
-
 {% endblock content %}

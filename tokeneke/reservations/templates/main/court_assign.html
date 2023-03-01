@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
+  <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Icons -->
@@ -13,85 +12,76 @@
     {% block head %}{% endblock head %}
     <script src="{% url 'jsi18n' %}"></script>
     <title>Tokeneke Reservations</title>
-</head>
-
-<body>
+  </head>
+  <body>
     <!--=============== NAV ===============-->
     <div class="nav" id="nav">
-        <nav class="nav__content">
-            <div class="nav__toggle" id="nav-toggle">
-                <i class='bx bx-chevron-right'></i>
-            </div>
-
-            <a href="#" class="nav__logo" href="{% url 'home' %}">
-                <i class='bx bx-calendar-event'></i>
-                <span class="nav__logo-name">Calendar</span>
-            </a>
-
-            <div class="nav__list">
-                <a href="{% url 'home' %}"
-                    {% if request.resolver_match.url_name == 'home' %}class="nav__link active-link" {% endif %}>
-                    <i class='bx bx-tennis-ball'></i>
-                    <span class="nav__name">Events</span>
-                </a>
-
-                <a href="{% url 'my_events' %}" {% if request.resolver_match.url_name == 'my_events' %}
-                    class="nav__link active-link" {% endif %}>
-                    <i class='bx bx-calendar-edit'></i>
-                    <span class="nav__name">My Events</span>
-                </a>
-
-                {% if user.is_staff %}
-                <a href="{% url 'edit_all_events' %}" {% if request.resolver_match.url_name == 'edit_all_events' %}
-                    class="nav__link active-link" {% endif %}>
-                    <i class='bx bx-edit'></i>
-                    <span class="nav__name">Edit</span>
-                </a>
-                {% endif %}
-
-                <a href="{% url 'logout' %}" {% if request.resolver_match.url_name == 'logout' %}
-                    class="nav__link active-link" {% endif %}>
-                    <i class='bx bx-log-out'></i>
-                    <span class="nav__name">Log Out</span>
-                </a>
-            </div>
-        </nav>
+      <nav class="nav__content">
+        <div class="nav__toggle" id="nav-toggle">
+          <i class='bx bx-chevron-right'></i>
+        </div>
+        <a href="#" class="nav__logo" href="{% url 'home' %}">
+        <i class='bx bx-calendar-event'></i>
+        <span class="nav__logo-name">Calendar</span>
+        </a>
+        <div class="nav__list">
+          <a href="{% url 'home' %}"
+          {% if request.resolver_match.url_name == 'home' %}class="nav__link active-link" {% endif %}>
+          <i class='bx bx-tennis-ball'></i>
+          <span class="nav__name">Events</span>
+          </a>
+          <a href="{% url 'my_events' %}" {% if request.resolver_match.url_name == 'my_events' %}
+          class="nav__link active-link" {% endif %}>
+          <i class='bx bx-calendar-edit'></i>
+          <span class="nav__name">My Events</span>
+          </a>
+          {% if user.is_staff %}
+          <a href="{% url 'edit_all_events' %}" {% if request.resolver_match.url_name == 'edit_all_events' %}
+          class="nav__link active-link" {% endif %}>
+          <i class='bx bx-edit'></i>
+          <span class="nav__name">Edit</span>
+          </a>
+          {% endif %}
+          <a href="{% url 'logout' %}" {% if request.resolver_match.url_name == 'logout' %}
+          class="nav__link active-link" {% endif %}>
+          <i class='bx bx-log-out'></i>
+          <span class="nav__name">Log Out</span>
+          </a>
+        </div>
+      </nav>
     </div>
-
     <!--=============== MAIN ===============-->
     {% if participants %}
     <div class="courts_container">
-        {% for player in participants %}
-        {% if forloop.counter0|divisibleby:4 %}
-            <div class="court_wrapper">
-                <div class="court grass">
-                    <div class="sidelineA"></div>
-                    <div class="main">
-                        <div class="back">
-                        </div>
-                        <div class="front">
-                            <div class="half">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="sidelineB"></div>
-                </div>
-                {% endif %}
-                <div id="{% cycle 'player1' 'player2' 'player3' 'player4' %}">
-                    <b class="avatar_label">{{ player }}</b>
-                    <img src="{{ player.profile_pic.url }}" />
-                </div>
-                {% if forloop.counter|divisibleby:4 or forloop.last %}
+      {% for player in participants %}
+      {% if forloop.counter0|divisibleby:4 %}
+      <div class="court_wrapper">
+        <div class="court grass">
+          <div class="sidelineA"></div>
+          <div class="main">
+            <div class="back">
             </div>
-                {% endif %}
-        {% endfor %}
+            <div class="front">
+              <div class="half">
+              </div>
+            </div>
+          </div>
+          <div class="sidelineB"></div>
+        </div>
+        {% endif %}
+        <div id="{% cycle 'player1' 'player2' 'player3' 'player4' %}">
+          <b class="avatar_label">{{ player }}</b>
+          <img src="{{ player.profile_pic.url }}" />
+        </div>
+        {% if forloop.counter|divisibleby:4 or forloop.last %}
+      </div>
+      {% endif %}
+      {% endfor %}
     </div>
     {% else %}
     <h1 class="center">No participants yet</h1>
     {% endif %}
-
     <!--=============== MAIN JS ===============-->
     <script src="{% static 'js/nav.js' %}"></script>
-</body>
-
+  </body>
 </html>

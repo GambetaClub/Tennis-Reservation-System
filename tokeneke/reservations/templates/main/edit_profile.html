@@ -1,0 +1,18 @@
+{% extends  'main/base.html' %}
+
+{% block head %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/edit_profile.css' %}">
+{% endblock head %}
+
+{% block content %}
+<div class="wrapper">
+  <div class="profile-card js-profile-card">
+    <div class="profile-card__img">
+      <img src="{{ user.profile_pic.url }}" alt="profile card">
+    </div>
+    <div class="profile-card__cnt js-profile-cnt">
+      <div class="profile-card__name">{{ user.first_name }} {{ user.last_name }}</div>
+      <div class="profile-card__txt">Front-end Developer from <strong>Mesopotamia</strong></div>
+      <div class="profile-card-loc">
+{% endblock content %}
