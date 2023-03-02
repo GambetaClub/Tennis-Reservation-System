@@ -98,12 +98,12 @@
             </div>
             <div class="box-progress-wrapper">
               <p class="box-progress-header">
-                {% if event.get_rem_spots == 0 %}
+                {% if event.get_fut_date_rem_spot == 0 %}
                 Full
-                {% elif event.get_rem_spots == 1 %}
-                {{event.get_rem_spots}} spot left
+                {% elif event.get_fut_date_rem_spots == 1 %}
+                {{event.get_fut_date_rem_spots}} spot left
                 {% else %}
-                {{event.get_rem_spots}} spots left
+                {{event.get_fut_date_rem_spots}} spots left
                 {% endif %}
               </p>
               <div class="box-progress-bar">

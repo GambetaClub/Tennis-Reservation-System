@@ -129,13 +129,12 @@ def create_clinic(request):
 @staff_member_required
 def edit_event(request, event_id):
     event = get_object_or_404(Event, id=event_id)
-    clinics = Clinic.objects.filter(event__id = event.id)
     form = CreateEventForm(request.POST or None, instance=event)
     if form.is_valid():
         form.save()
         messages.success(request, f"You edited the event: {event.title}.")
         return redirect('home')
-    return render(request, 'main/edit_event.html', {'event': event, 'clinics': clinics, 'form': form})
+    return render(request, 'main/edit_event.html', {'event': event, 'clinics': event.get_clinics(), 'form': form})
 
 @login_required
 def edit_profile(request):
@@ -154,15 +153,13 @@ def edit_clinic(request, clinic_id):
     clinic = get_object_or_404(Clinic, id=clinic_id)
     old_occurrences = list(clinic.recurrences.occurrences(dtend = date_limit))
     form = CreateClinicForm(request.POST or None, instance=clinic)
-    event = Event.objects.get(clinic = clinic)
-    clinic_dates = Date.objects.filter(clinic = clinic)
     if form.is_valid():
         new_occurrences = list(form.instance.recurrences.occurrences(dtend = date_limit))
         # If the time of the clinic it's changed, then all dates should be deleted
         # and ask the members to sign up for the new dates.
         if form.data['start_time'] != str(clinic.start_time) or \
            form.data['end_time']   != str(clinic.end_time):
-                for date in event.get_fut_dates():
+                for date in clinic.get_fut_dates():
                     date.delete()
                 form.instance.update_date_instances()
         # Instead, if only some dates were added or deleted,
@@ -170,14 +167,18 @@ def edit_clinic(request, clinic_id):
         # the future dates.
         elif old_occurrences != new_occurrences:
             form.instance.update_date_instances(old_occurrences)
+
+        elif form.data['capacity'] != clinic.capacity:
+            form.instance.update_dates_capacity()
+
         form.save()
         messages.success(request, f"You edited the clinic: {clinic.title}.")
         return redirect('home')
     
     return render(request, 'main/edit_clinic.html',
-     {'event': event,
+     {'event': clinic.get_event(),
       'clinic': clinic,
-      'dates': clinic_dates,
+      'dates': clinic.get_all_dates(),
        'form': form})
 
 
@@ -190,12 +191,11 @@ def edit_date(request, date_id):
         form.save()
         messages.info(request, f"You edited the date: {date}.")
         return redirect('home')
-    clinic = Clinic.objects.get(date=date)
     participants = date.get_participants()
     return render(request, 'main/edit_date.html',
      {  'date': date,
         'participants': participants,
-        'clinic': clinic,
+        'clinic': date.get_clinic(),
         'form': form})
     
 @login_required

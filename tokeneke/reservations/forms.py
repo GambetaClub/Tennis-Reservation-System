@@ -1,7 +1,7 @@
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from .models import Member, Event, Participation, Clinic, Date
 from django import forms
-from django.forms import TextInput, Textarea, Select, CheckboxInput, TimeInput
+from django.forms import TextInput, Textarea, Select, CheckboxInput, TimeInput, DateTimeInput, MultipleChoiceField
 from django.core.exceptions import ValidationError
 
 
@@ -26,7 +26,6 @@ class CreateParticipationForm(forms.ModelForm):
         member = cleaned_data.get('member')
         date = cleaned_data.get('date')
         event = date.get_event()
-
         if event.gender != 'MIXED' and event.gender != member.gender:
             raise ValidationError(f"{str(member)} can't participate in a event for {event.get_gender_display().lower()}s.")
         return cleaned_data
@@ -39,7 +38,15 @@ class MemberAuthForm(AuthenticationForm):
 class CreateDateForm(forms.ModelForm):
     class Meta:
         model = Date
-        fields = ['clinic', 'datetime_start', 'datetime_end', 'participants']
+        fields = ['clinic', 'datetime_start', 'datetime_end', 'capacity', 'participants']
+
+        widgets = {
+            'clinic': Select(attrs={'class': 'form-control'}),
+            'datetime_start': DateTimeInput(attrs={'class': 'form-control'}),
+            'datetime_end': DateTimeInput(attrs={'class': 'form-control'}),
+            'capacity': TextInput(attrs={'type': 'number', 'class': 'form-control'}),
+            'participants': forms.CheckboxSelectMultiple(),
+        }
 
 class CreateEventForm(forms.ModelForm):
     class Meta:
