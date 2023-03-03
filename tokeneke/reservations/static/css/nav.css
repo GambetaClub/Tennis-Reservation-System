@@ -82,6 +82,7 @@ div.label {
 @media screen and (max-width: 767px) {
   .section {
     margin-bottom: 120px;
+    padding: 8px
   }
 
   .space_for_nav {

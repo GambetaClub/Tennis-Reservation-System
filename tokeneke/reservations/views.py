@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponseBadRequest
 from django.http import JsonResponse
-from .models import Event, Clinic, Date, Participation
+from .models import Event, Clinic, Date, Participation, Member
 from django.utils import timezone
 import json
 from django.contrib.auth import authenticate, login, logout
@@ -17,7 +17,7 @@ from .constants import *
 def home(request):
     # Querying all the events that have a next date after today. The next date field takes
     # care of giving the next date based on todays date. 
-
+    
     request.user.get_fut_events_registered()
     excl_gen = 'F' if request.user.gender == 'M' else 'M'
     events = Event.objects.filter(clinic__date__datetime_start__gte=timezone.now()).exclude(gender=excl_gen).distinct()
@@ -191,7 +191,7 @@ def edit_date(request, date_id):
         form.save()
         messages.info(request, f"You edited the date: {date}.")
         return redirect('home')
-    participants = date.get_participants()
+    participants = date.get_all_parts()
     return render(request, 'main/edit_date.html',
      {  'date': date,
         'participants': participants,
@@ -211,12 +211,17 @@ def event(request, event_id):
 @login_required()
 def event_participants(request, event_id):
     event = Event.objects.get(id=event_id)
-    participants = []
+    on_courts = []
+    on_wait = []
     # Returns the first date on the list, if empty then it returns None
     next_date = next(iter(event.get_fut_dates(1)), None)
     if next_date:
-        participants = next_date.get_participants()
-    return render(request, 'main/court_assign.html', {'event': event, 'participants': participants})
+        on_court = next_date.get_parts_on_court()
+        on_wait = next_date.get_parts_on_wait()
+    return render(request, 'main/court_assign.html',{
+        'event': event,
+        'on_court': next_date.get_parts_on_court(),
+        'on_wait': on_wait})
 
 @login_required
 def add_participant(request):

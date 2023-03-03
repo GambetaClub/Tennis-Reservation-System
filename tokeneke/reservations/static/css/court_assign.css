@@ -66,7 +66,6 @@ align-items: center;
 justify-content: center ;
 flex-wrap: wrap;
 flex-direction: row;
-position: absolute;
 }
 
 .court_wrapper {
@@ -152,11 +151,11 @@ float: left;
 z-index: -1000 !important;
 }
 
-img {
-width: 55px;
-height: 55px;
+.courts_container img {
+width: 65px;
+height: 65px;
 border-radius: 50%;
-transform: none !important;
+transform: rotateX(0deg) rotateZ(60deg);
 box-shadow: -0.5px 1px 3em black, 
             -0.1px 0.1px 1em darkgray;
 -o-object-fit: cover;
@@ -188,10 +187,39 @@ bottom: 64%;
 position: absolute;
 }
 
+#player4 .avatar_label {
+  top: -1px;
+  right: -110%;
+}
+
 .avatar_label {
 display: inline-block;
 white-space: nowrap;
 color: white;
+transform: rotateX(0deg) rotateZ(60deg);
 position: absolute;
-top: -30%;
+top: -6%;
+right: -87%;
+font-size: 18px;
+z-index: 100;
+}
+
+
+.wait_list{
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+.wait_list img {
+  width: px;
+  height: 55px;
+  border-radius: 50%;
+  box-shadow: -0.1px 0.1px 0.5em black, 
+              -0.1px 0.1px 0.2em darkgray;
+  -o-object-fit: cover;
+  object-fit: cover;
+}
+
+.wait_list ol {
+  color: black;
 }

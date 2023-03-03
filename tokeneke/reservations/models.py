@@ -224,13 +224,9 @@ class Event(models.Model):
         
     def get_participants(self):
         try:
-            return self.get_next_date().get_participants()
+            return self.get_next_date().get_all_parts()
         except:
             "No next date"
-    
-    def get_six_participants(self):
-        return self.get_next_date().get_participants()
-    
 
 class Clinic(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
@@ -362,11 +358,24 @@ class Date(models.Model):
         
     def get_clinic(self):
         return Clinic.objects.get(date = self)
+    
 
-    def get_participants(self):
-        # Returns a list with all the participants of the date
-        members = Member.objects.filter(participation__date__id=self.id).order_by('-level')
-        return members
+    def get_all_parts(self):
+        # Returns a list with all the participants with the ones that first registered first
+        return [(i.member) for i in Participation.objects.filter(date__id = self.id).order_by('date_registered')]
+
+    def get_parts_on_court(self):
+        all_parts =  self.get_all_parts()
+        on_court = all_parts[:self.capacity]
+        # Order the participants by their level
+        on_court.sort(key=lambda participant: participant.level, reverse=True)
+        return on_court
+    
+    def get_parts_on_wait(self):
+        all_parts =  self.get_all_parts()
+        on_wait = all_parts[self.capacity:]
+        return on_wait
+    
 
     def get_datetime_start(self):
         return timezone.localtime(self.datetime_start)
@@ -397,8 +406,13 @@ class Date(models.Model):
     def get_rem_spots(self):
         return self.get_capacity() - self.get_registered_count()
         
+        
     def get_cap_pct(self):
-        return '{:.0%}'.format(self.get_rem_spots()/ self.get_capacity())
+        cap_pct = 1 - self.get_rem_spots()/ self.get_capacity()
+        if cap_pct > 1:
+            return 1
+        else:
+            return '{:.0%}'.format(1 - self.get_rem_spots()/ self.get_capacity())
 
 
 class Participation(models.Model):
