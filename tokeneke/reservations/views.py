@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .forms import CreateMemberForm, MemberAuthForm, CreateEventForm, CreateClinicForm, CreateDateForm
+from .forms import CreateMemberForm, MemberAuthForm, CreateEventForm, CreateClinicForm, CreateDateForm, UpdateMemberForm
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
@@ -138,12 +138,13 @@ def edit_event(request, event_id):
 
 @login_required
 def edit_profile(request):
-    member = request.user
-    form = CreateMemberForm(request.POST or None, instance=member)
-    if form.is_valid():
-        form.save()
-        messages.success(request, f"You edited your profile.")
-        return redirect('home')
+    form = UpdateMemberForm(instance=request.user)
+    if request.method == 'POST':
+        form = UpdateMemberForm(request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"You edited your profile.")
+            return redirect('home')
     return render(request, 'main/edit_profile.html', {'form': form})  
 
 

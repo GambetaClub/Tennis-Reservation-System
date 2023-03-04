@@ -1,4 +1,4 @@
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, UserChangeForm
 from .models import Member, Event, Participation, Clinic, Date
 from django import forms
 from django.forms import TextInput, Textarea, Select, CheckboxInput, TimeInput, DateTimeInput, MultipleChoiceField
@@ -13,13 +13,24 @@ class CreateMemberForm(UserCreationForm):
     profile_pic = forms.ImageField(required = False, label="Profile Picture")
     class Meta:
         model = Member
-        fields = ['email', 'first_name', 'last_name', 'profile_pic', 'gender', 'member_n', 'password1', 'password2']
+        fields = ['email', 'first_name', 'last_name', 'profile_pic', 'member_n']
+
+class UpdateMemberForm(UserChangeForm):
+    class Meta:
+        model = Member
+        fields = ['first_name', 'last_name', 'email', 'member_n', 'profile_pic']
+
+        widgets = {
+            'first_name': TextInput(attrs={'class': 'form-control'}),
+            'last_name': TextInput(attrs={'class': 'form-control'}),
+            'email': TextInput(attrs={'class': 'form-control'}),
+            'member_n': TextInput(attrs={'class': 'form-control'}),
+        }
 
 class CreateParticipationForm(forms.ModelForm):
     class Meta:
         model = Participation
         fields = ['member', 'date']
-
 
     def clean(self):
         cleaned_data = super().clean()

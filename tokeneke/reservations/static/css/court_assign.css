@@ -1,225 +1,181 @@
 :root {
-  --court-width: 45vw;
+	--court-width: 45vw;
 }
-
 html {
-  box-sizing: border-box;
+	box-sizing: border-box;
 }
-
 body {
-width: 100%;
-height: 100vh;
-display: flex;
+	width: 100%;
+	height: 100vh;
+	display: flex;
 }
-
 .center {
-position: absolute;
-left: 50%;
-top: 50%;
--webkit-transform: translate(-50%, -50%); 
-transform: translate(-50%, -50%);
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	-webkit-transform: translate(-50%, -50%);
+	transform: translate(-50%, -50%);
 }
-
 @media screen and (min-width: 767px) {
-  .courts_container {
-      left: 85px !important;
-      width: calc(100% - 84px);
-  }
-
-  .court_number {
-      font-size: 2rem;
-  }
+	.courts_container {
+		left: 85px !important;
+		width: calc(100% - 84px);
+   }
+	.court_number {
+		font-size: 2rem;
+   }
 }
-
 @media screen and (max-width: 766px) {
-.courts_container {
-    width: 100%;
+	.courts_container {
+		width: 100%;
+   }
 }
-}
-
-
 @media screen and (max-width: 395px){
-
-  .courts_container {
-      width: 100% !important;
-  }
-
-  .court_number {
-      font-size: 1rem;
-  }
-
-  .court_wrapper {
-      height: 225px;
-      width: 350px;
-      min-height: 165px;
-      min-width: 220px;
-      min-height: 225px;
-      min-width: 350px;
-      height: calc(var(--court-width) * 0.75);
-      width: var(--court-width) !important;
-  }
+	.courts_container {
+		width: 100% !important;
+   }
+	.court_number {
+		font-size: 1rem;
+   }
+	.court_wrapper {
+		height: 225px;
+		width: 350px;
+		min-height: 165px;
+		min-width: 220px;
+		min-height: 225px;
+		min-width: 350px;
+		height: calc(var(--court-width) * 0.75);
+		width: var(--court-width) !important;
+   }
 }
-
 .courts_container {
-display: flex;
-align-items: center;
-justify-content: center ;
-flex-wrap: wrap;
-flex-direction: row;
+	display: flex;
+	align-items: center;
+	justify-content: center ;
+	flex-wrap: wrap;
+	flex-direction: row;
 }
-
 .court_wrapper {
-background: rgb(60, 131, 60);
-position: relative;
-max-height: 525px;
-max-width: 700px;
-min-height: 225px;
-min-width: 350px;
-height: calc(var(--court-width) * 0.75);
-width: var(--court-width) !important;
-box-shadow: -15px 20px 3em black, 
-              -5px 10px 1em darkgray;
-border-radius: 20px;
-transform: rotateX(60deg) rotateZ(-60deg);
-transform-style: preserve-3d;  
-border-left: 10px solid silver;
-border-bottom: 10px solid silver;
+	background: #288a0d;
+	position: relative;
+	max-height: 525px;
+	max-width: 700px;
+	min-height: 225px;
+	min-width: 350px;
+	height: calc(var(--court-width) * 0.75);
+	width: var(--court-width) !important;
+	box-shadow: -15px 20px 3em black, -5px 10px 1em darkgray;
+	border-radius: 20px;
+	transform: rotateX(60deg) rotateZ(-60deg);
+	transform-style: preserve-3d;
+	border-left: 10px solid silver;
+	border-bottom: 10px solid silver;
 }
-
 .court_number {
-  position: absolute !important;
-  left: 39% !important;
-  top: -50px;
-  font-size: 2rem;
-  color: black;
-  font-weight: bold;
+	position: absolute !important;
+	left: 39% !important;
+	top: -50px;
+	font-size: 2rem;
+	color: black;
+	font-weight: bold;
 }
-
 .court {
-height: 82%;
-width: 88%;
-margin: 6.4%;
+	height: 82%;
+	width: 88%;
+	margin: 6.4%;
 }
-
 .grass {
-background: linear-gradient(
-    110deg,
-    rgba(255, 255, 255, 0.1) 55%,
-    rgba(0, 0, 0, 0)
-  ),
-  rgba(1, 1, 1, 0.3);
+	background: linear-gradient( 110deg, rgba(255, 255, 255, 0.1) 55%, rgba(0, 0, 0, 0) ), rgba(1, 1, 1, 0.3);
 }
-
 .sidelineA {
-height: 12%;
-width: 100%;
-border: 4px solid white;
+	height: 12%;
+	width: 100%;
+	border: 4px solid white;
 }
-
 .main {
-height: 76%;
-width: 100%;
-border-left: 5px solid white;
-border-right: 5px solid white;
-display: flex;
+	height: 76%;
+	width: 100%;
+	border-left: 5px solid white;
+	border-right: 5px solid white;
+	display: flex;
 }
-
 .back {
-height: 100%;
-width: 30%;
-border-right: 5px solid white;
+	height: 100%;
+	width: 30%;
+	border-right: 5px solid white;
 }
-
 .front {
-height: 100%;
-width: 45%;
-border-right: 5px solid white;
+	height: 100%;
+	width: 45%;
+	border-right: 5px solid white;
 }
-
 .half {
-position: relative;
-height: 50%;
-width: 100%;
-border-bottom: 4px solid white;
+	position: relative;
+	height: 50%;
+	width: 100%;
+	border-bottom: 4px solid white;
 }
-
 .sidelineB {
-height: 12%;
-width: 100%;
-border: 4px solid white;
-float: left;
-z-index: -1000 !important;
+	height: 12%;
+	width: 100%;
+	border: 4px solid white;
+	float: left;
+	z-index: -1000 !important;
 }
-
 .courts_container img {
-width: 65px;
-height: 65px;
-border-radius: 50%;
-transform: rotateX(0deg) rotateZ(60deg);
-box-shadow: -0.5px 1px 3em black, 
-            -0.1px 0.1px 1em darkgray;
--o-object-fit: cover;
-object-fit: cover;
+	width: 65px;
+	height: 65px;
+	border-radius: 50%;
+	transform: rotateX(0deg) rotateZ(60deg);
+	box-shadow: -0.5px 1px 3em black, -0.1px 0.1px 1em darkgray;
+	-o-object-fit: cover;
+	object-fit: cover;
 }
-
 #player1 {
-left: 3% !important;
-top: 20% !important;
-position: absolute !important;
+	left: 3% !important;
+	top: 20% !important;
+	position: absolute !important;
 }
-
 #player2 {
-right: 3%;
-bottom: 20%;
-position: absolute;
+	right: 3%;
+	bottom: 20%;
+	position: absolute;
 }
-
 #player3 {
-float: top !important;
-left: 37%;
-top: 61%;
-position: absolute;
+	float: top !important;
+	left: 37%;
+	top: 61%;
+	position: absolute;
 }
-
 #player4 {
-right: 37%;
-bottom: 64%;
-position: absolute;
+	right: 37%;
+	bottom: 64%;
+	position: absolute;
 }
-
 #player4 .avatar_label {
-  top: -1px;
-  right: -110%;
+	top: -1px;
+	right: -110%;
 }
-
 .avatar_label {
-display: inline-block;
-white-space: nowrap;
-color: white;
-transform: rotateX(0deg) rotateZ(60deg);
-position: absolute;
-top: -6%;
-right: -87%;
-font-size: 18px;
-z-index: 100;
+	display: inline-block;
+	white-space: nowrap;
+	color: white;
+	transform: rotateX(0deg) rotateZ(60deg);
+	position: absolute;
+	top: -6%;
+	right: -87%;
+	font-size: 18px;
+	z-index: 100;
 }
-
-
 .wait_list{
-  width: 100%;
-  display: flex;
-  justify-content: center;
+	width: 100%;
+	display: flex;
+	justify-content: center;
 }
 .wait_list img {
-  width: px;
-  height: 55px;
-  border-radius: 50%;
-  box-shadow: -0.1px 0.1px 0.5em black, 
-              -0.1px 0.1px 0.2em darkgray;
-  -o-object-fit: cover;
-  object-fit: cover;
-}
-
-.wait_list ol {
-  color: black;
+	height: 55px;
+	border-radius: 50%;
+	box-shadow: -0.1px 0.1px 0.5em black, -0.1px 0.1px 0.2em darkgray;
+	-o-object-fit: cover;
+	object-fit: cover;
 }

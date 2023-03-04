@@ -1,109 +1,53 @@
-@import url('https://fonts.googleapis.com/css?family=Quicksand:400,500,700&subset=latin-ext');
 
-:root {
-   --club-color: #4067f9;
-   --men-color: #4067f9;
-   --men-bg-color: #4067f9;
-   --ladies-color: #df3670;
-   --ladies-bg-color: #ffd3e2;
-   --mixed-color: #ff942e;
-   --mixed-bg-color: #fee4cb;
+
+.form-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center
 }
 
-a,
-a:hover {
-   text-decoration: none;
+.picture_wrapper{
+    position: relative;
+    width: 170px;
+    height: 170px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 1px solid grey;
 }
 
-.wrapper {
-   width: 100%;
-   width: 100%;
-   height: auto;
-   min-height: 100vh;
-   padding: 50px 20px;
-   padding-top: 100px;
-   display: flex;
-   border-radius: 50px;
-   background-image: linear-gradient(-20deg, #e9e9e9 0%, var(--club-color) 100%);
-   display: flex;
-   background-image: linear-gradient(-20deg, #5ec515 0%, var(club-color) 100%);
-}
-
-@media screen and (max-width: 768px) {
-   .wrapper {
-      height: auto;
-      min-height: 100vh;
-      padding-top: 100px;
-   }
-}
-
-.profile-card {
-   width: 100%;
-   min-height: 460px;
-   margin: auto;
-   box-shadow: 0px 8px 60px -10px rgba(13, 28, 39, 0.6);
-   background: #fff;
-   border-radius: 12px;
-   max-width: 700px;
-   position: relative;
-}
-
-.profile-card.active .profile-card__cnt {
-   filter: blur(6px);
-}
-
-.profile-card.active .profile-card-message,
-.profile-card.active .profile-card__overlay {
-   opacity: 1;
-   pointer-events: auto;
-   transition-delay: 0.1s;
-}
-
-.profile-card.active .profile-card-form {
-   transform: none;
-   transition-delay: 0.1s;
-}
-
-.profile-card__img {
-   width: 150px;
-   height: 150px;
-   margin-left: auto;
-   margin-right: auto;
-   transform: translateY(-50%);
-   border-radius: 50%;
-   overflow: hidden;
-   position: relative;
-   z-index: 4;
-   box-shadow: 0px 5px 50px 0px #6c44fc, 0px 0px 0px 7px rgba(107, 74, 255, 0.5);
-}
-
-@media screen and (max-width: 576px) {
-   .profile-card__img {
-      width: 120px;
-      height: 120px;
-   }
-}
-
-.profile-card__img img {
-   display: block;
-   width: 100%;
-   height: 100%;
-   object-fit: cover;
+.picture_wrapper img {
+   -o-object-fit: cover;
+     object-fit: cover;
    border-radius: 50%;
 }
 
-.profile-card__cnt {
-   margin-top: -35px;
-   text-align: center;
-   padding: 0 20px;
-   padding-bottom: 40px;
-   transition: all 0.3s;
+#photo{
+    height: 100%;
+    width: 100%;
 }
 
-.profile-card__name {
-   font-weight: 700;
-   font-size: 24px;
-   color: #6944ff;
-   margin-bottom: 15px;
+#id_profile_pic{
+    display: none;
+}
+
+#uploadBtn{
+    height: 40px;
+    width: 100%;
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    background: rgba(0, 0, 0, 0.7);
+    color: wheat;
+    line-height: 30px;
+    font-family: sans-serif;
+    font-size: 15px;
+    cursor: pointer;
+    display: none;
+}
+
+.save-button {
+    margin: 20px;
 }
 

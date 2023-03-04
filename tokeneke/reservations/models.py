@@ -64,8 +64,8 @@ class Member(AbstractBaseUser, PermissionsMixin):
         (GENDER_FEMALE, 'Female'),
     ]
 
-    email = models.EmailField(_('email address'), unique=True)
-    member_n = models.CharField(max_length=10, blank=True)
+    email = models.EmailField(_('Email address'), unique=True)
+    member_n = models.CharField(_('Member #'), max_length=10, blank=True)
     first_name = models.CharField(max_length=150, blank=True)
     last_name = models.CharField(max_length=150, blank=True)
     level = models.IntegerField(validators=[validate_percentage], null=True)
