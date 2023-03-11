@@ -13,14 +13,28 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from .constants import *
 
+
+def get_available_events(request):
+    request.user.get_fut_events_registered()
+    excl_gen = 'F' if request.user.gender == 'M' else 'M'
+    return Event.objects.filter(clinic__date__datetime_start__gte=timezone.now()).exclude(gender=excl_gen).distinct()
+
+@login_required
+def filter_events(request):
+    if request.method == "POST":
+        string = request.POST.get('input')
+        curr_events = json.loads(request.POST.get('curr_events'))
+        events = Event.objects.filter(title__in=curr_events).filter(title__istartswith=string)
+        data = [event.title for event in events]
+        return JsonResponse({'data': data})
+
+
+
 @login_required
 def home(request):
     # Querying all the events that have a next date after today. The next date field takes
     # care of giving the next date based on todays date. 
-    
-    request.user.get_fut_events_registered()
-    excl_gen = 'F' if request.user.gender == 'M' else 'M'
-    events = Event.objects.filter(clinic__date__datetime_start__gte=timezone.now()).exclude(gender=excl_gen).distinct()
+    events = get_available_events(request)
     return render(request, 'main/home.html', {
         'events': events,
         'page_title': 'Events Available',

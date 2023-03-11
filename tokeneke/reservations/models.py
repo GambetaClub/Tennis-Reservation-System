@@ -185,7 +185,7 @@ class Event(models.Model):
         # Returns the future Date formatted date
         try:
             date  = self.get_next_date().get_datetime_start()
-            return date.strftime('%A, %b %-d')
+            return date.strftime('%A, %b %-d - %I:%M %p')
         except:
             return "No more clinics"
 

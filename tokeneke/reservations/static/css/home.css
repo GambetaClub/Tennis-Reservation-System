@@ -438,7 +438,6 @@ a {
 .project-boxes.jsListView .project-box-header > span {
   position: absolute;
   bottom: 16px;
-  left: 16px;
   font-size: 12px;
 }
 .project-boxes.jsListView .box-progress-wrapper {
