@@ -24,7 +24,7 @@ def filter_events(request):
     if request.method == "POST":
         string = request.POST.get('input')
         curr_events = json.loads(request.POST.get('curr_events'))
-        events = Event.objects.filter(title__in=curr_events).filter(title__istartswith=string)
+        events = Event.objects.filter(title__in=curr_events).filter(title__icontains=string)
         data = [event.title for event in events]
         return JsonResponse({'data': data})
 
