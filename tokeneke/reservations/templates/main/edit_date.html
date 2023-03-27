@@ -8,7 +8,17 @@
 Date Clinic: <a href="{% url 'edit_clinic' clinic.id %}">{{clinic}}</a>
 <form class="edit-form" method="post" action="{% url 'edit_date' date.id %}">
   {% csrf_token %}
-  {{form}}
+  {{form.clinic}}
+  {{form.datetime_start.label}}
+  {{form.datetime_start}}
+  {{form.datetime_end.label}}
+  {{form.datetime_end}}
+  {{form.capacity.label}}
+  {{form.capacity}}
+  <br>
+  <input type="text" id="filterInput" onkeyup="filterParticipants()" placeholder="Filter participants" class="form-control">
+  {{form.participants.label}}
+  {{form.participants}}
   <br>
   <div class="row justify-content-center">
     <button type="submit" class="btn btn-primary mb-2">Save Date</button>
@@ -20,5 +30,4 @@ Date Clinic: <a href="{% url 'edit_clinic' clinic.id %}">{{clinic}}</a>
   <li>{{participant}}</li>
   {% endfor %}
 </ul>
-
 {% endblock content %}

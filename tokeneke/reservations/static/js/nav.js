@@ -6,6 +6,35 @@ function colorLink(){
     this.classList.add('active-link')
 }
 
+if (window.location.href.includes('edit_date')) {
+  const parentDiv = document.getElementById('id_participants');
+  const childDivs = parentDiv.getElementsByTagName('div');
+  const lastChild = childDivs[childDivs.length-1]
+  lastChild.style.display = 'none';
+}
+
+
+function filterParticipants() {
+  const parentDiv = document.getElementById('id_participants');
+  const childDivs = parentDiv.getElementsByTagName('div');
+
+  const input = document.getElementById('filterInput');
+  input.addEventListener('input', () => {
+    const filterValue = input.value.toLowerCase();
+    for (let i = 0; i < childDivs.length; i++) {
+      const childDiv = childDivs[i];
+      const textContent = childDiv.textContent.toLowerCase();
+      if (textContent.includes(filterValue)) {
+        childDiv.style.display = 'block';
+      } else {
+        childDiv.style.display = 'none';
+      }
+    }
+  const lastChild = childDivs[childDivs.length-1]
+  lastChild.style.display = 'none';
+  });
+}
+
 linkColor.forEach(l => l.addEventListener('click', colorLink))
 
 /*=============== SHOW HIDDEN MENU ===============*/
