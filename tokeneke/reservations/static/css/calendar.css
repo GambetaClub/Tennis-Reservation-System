@@ -1,0 +1,157 @@
+body {
+	padding: 1rem;
+}
+
+.panel {
+	width: 100%;
+	max-width: 1008px;
+	margin: 0 auto;
+	border: 1px solid #dcdde0;
+	border-radius: 2px;
+	padding: 2rem 0;
+}
+
+.schedule {
+	background: #fff;
+	width: 100%;
+	height: auto;
+	padding-top: 4rem;
+	border-top: 1px solid #dcdde0;
+	border-bottom: 1px solid #dcdde0;
+
+	position: relative;
+
+	display: flex;
+	flex-direction: column;
+}
+
+.schedule-header {
+	background: #eaeaec;
+	height: 4rem;
+	text-align: center;
+	font-size: 1.125rem;
+	color: rgba(0, 0, 0, 0.75);
+	border-bottom: 1px solid #dcdde0;
+	box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
+	z-index: 1000;
+
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+
+	display: flex;
+	flex-direction: row;
+
+	.schedule-col {
+		justify-content: center;
+	}
+}
+
+.header-legend {
+	width: 4rem;
+	background: #f4f4f5;
+	border-right: 1px solid #dcdde0;
+	display: flex;
+	flex-grow: 0;
+	flex-shrink: 0;
+	flex-direction: column;
+}
+
+.schedule-body--helper {
+	max-height: 36rem;
+	overflow-y: scroll;
+
+	position: relative;
+}
+
+.schedule-body {
+	height: 80rem;
+	display: flex;
+	margin-top: 1rem;
+	flex-basis: 1;
+	flex-grow: 1;
+	flex-shrink: 0;
+	flex-direction: row;
+}
+
+.schedule-legend {
+	width: 4rem;
+	background: #f4f4f5;
+	margin-top: -21px;
+	border-right: 1px solid #dcdde0;
+	display: flex;
+	flex-grow: 0;
+	flex-shrink: 0;
+	flex-direction: column;
+}
+
+.schedule-legend--row {
+	height: 3rem;
+	line-height: 40px;
+	margin-top: 0;
+	padding: 0 0.5rem;
+	justify-content: flex-end;
+	color: #555971;
+	background-color: #f4f4f5;
+	display: flex;
+	flex-grow: 1;
+	flex-shrink: 1;
+}
+
+.schedule-col {
+	display: flex;
+	flex-basis: 0;
+	flex-grow: 2;
+	flex-shrink: 2;
+	flex-direction: column;
+
+	&:not(:last-child) {
+		border-right: 1px solid #dcdde0;
+	}
+}
+
+.schedule-cell {
+	background: white;
+	height: 40px;
+	display: flex;
+	border-bottom: 1px solid #dcdde0;
+
+	&:first-child {
+		border-top: 1px solid #dcdde0;
+	}
+
+	&:hover {
+		background-color: #eee;
+		cursor: pointer;
+	}
+	&.disabled:hover {
+		background-color: #fff;
+		cursor: default;
+	}
+}
+
+.reservation-container {
+	width: 100%;
+	position: relative;
+}
+
+.reservation-content {
+	color: white;
+	position: absolute;
+	width: 100%;
+	height: 300%;
+	padding: 4px;
+}
+
+.block {
+	border-radius: 4px;
+	background-color: red;
+	width: 100%;
+	height: 100%;
+	padding: 4px 6px;
+	cursor: pointer;
+	&:hover {
+		background-color: darken(red, 2%);
+	}
+}

@@ -1,0 +1,6 @@
+Run a command with the development shell:
+docker-compose -f docker-compose.yml run --rm app sh -c "<command>"
+
+
+Run a command with the deployment shell:
+docker-compose -f docker-compose-deploy.yml run --rm app sh -c "<command>"

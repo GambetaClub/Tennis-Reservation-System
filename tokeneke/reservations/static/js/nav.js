@@ -6,13 +6,6 @@ function colorLink(){
     this.classList.add('active-link')
 }
 
-if (window.location.href.includes('edit_date')) {
-  const parentDiv = document.getElementById('id_participants');
-  const childDivs = parentDiv.getElementsByTagName('div');
-  const lastChild = childDivs[childDivs.length-1]
-  lastChild.style.display = 'none';
-}
-
 
 function filterParticipants() {
   const parentDiv = document.getElementById('id_participants');
@@ -30,8 +23,6 @@ function filterParticipants() {
         childDiv.style.display = 'none';
       }
     }
-  const lastChild = childDivs[childDivs.length-1]
-  lastChild.style.display = 'none';
   });
 }
 
