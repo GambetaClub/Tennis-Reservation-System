@@ -27,12 +27,16 @@
         <span class="nav__logo-name">Reservations</span>
       </a>
       <div class="nav__list">
+        <a href="{% url 'calendar' %}" {% if request.resolver_match.url_name == 'calendar' %}class="nav__link active-link" {% endif %}>
+          <i class='bx bx-calendar'></i>
+          <span class="nav__name">Calendar</span>
+        </a>
         <a href="{% url 'home' %}" {% if request.resolver_match.url_name == 'home' %}class="nav__link active-link" {% endif %}>
           <i class='bx bx-tennis-ball'></i>
           <span class="nav__name">Events</span>
         </a>
         <a href="{% url 'my_events' %}" {% if request.resolver_match.url_name == 'my_events' %}class="nav__link active-link" {% endif %}>
-          <i class='bx bx-calendar-edit'></i>
+          <i class='bx bx-calendar-star' ></i>
           <span class="nav__name">My Events</span>
         </a>
         {% if user.is_staff %}

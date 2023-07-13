@@ -1,6 +1,8 @@
 {% extends 'main/base.html' %} {% block head %} {% load static %}
 <link rel="stylesheet" href="{% static 'css/calendar.css' %}" />
-<script src="{% static 'js/calendar.js' %}"></script>
+<script>
+	var dates = JSON.parse('{{ dates | safe }}')
+</script>
 {% endblock %} {% block content %}
 <div class="panel">
 	<div class="schedule">
@@ -52,11 +54,11 @@
 					<div class="schedule-legend--row">21:30</div>
 					<div class="schedule-legend--row">22:00</div>
 				</div>
-				<div class="schedule-col">
+				<div class="schedule-col" id="stadium-court">
 					<div class="schedule-cell disabled">
 						<div class="reservation-container">
 							<div class="reservation-content">
-								<div class="block">Salut</div>
+								<div class="block">Sherine</div>
 							</div>
 						</div>
 					</div>
@@ -180,7 +182,7 @@
 						onclick="handleCellClick(this)"
 					></div>
 				</div>
-				<div class="schedule-col">
+				<div class="schedule-col" id="court-1">
 					<div class="schedule-cell"></div>
 					<div class="schedule-cell"></div>
 					<div class="schedule-cell"></div>
@@ -214,7 +216,7 @@
 					<div class="schedule-cell"></div>
 					<div class="schedule-cell"></div>
 				</div>
-				<div class="schedule-col">
+				<div class="schedule-col" id="court-2">
 					<div class="schedule-cell"></div>
 					<div class="schedule-cell"></div>
 					<div class="schedule-cell"></div>
@@ -248,7 +250,7 @@
 					<div class="schedule-cell"></div>
 					<div class="schedule-cell"></div>
 				</div>
-				<div class="schedule-col">
+				<div class="schedule-col" id="court-3">
 					<div class="schedule-cell"></div>
 					<div class="schedule-cell"></div>
 					<div class="schedule-cell"></div>
@@ -282,7 +284,7 @@
 					<div class="schedule-cell"></div>
 					<div class="schedule-cell"></div>
 				</div>
-				<div class="schedule-col">
+				<div class="schedule-col" id="court-4">
 					<div class="schedule-cell"></div>
 					<div class="schedule-cell"></div>
 					<div class="schedule-cell"></div>
@@ -316,7 +318,7 @@
 					<div class="schedule-cell"></div>
 					<div class="schedule-cell"></div>
 				</div>
-				<div class="schedule-col">
+				<div class="schedule-col" id="court-5">
 					<div class="schedule-cell"></div>
 					<div class="schedule-cell"></div>
 					<div class="schedule-cell"></div>
@@ -350,7 +352,7 @@
 					<div class="schedule-cell"></div>
 					<div class="schedule-cell"></div>
 				</div>
-				<div class="schedule-col">
+				<div class="schedule-col" id="court-6">
 					<div class="schedule-cell"></div>
 					<div class="schedule-cell"></div>
 					<div class="schedule-cell"></div>
@@ -384,7 +386,7 @@
 					<div class="schedule-cell"></div>
 					<div class="schedule-cell"></div>
 				</div>
-				<div class="schedule-col">
+				<div class="schedule-col" id="court-7">
 					<div class="schedule-cell"></div>
 					<div class="schedule-cell"></div>
 					<div class="schedule-cell"></div>
@@ -421,6 +423,6 @@
 			</div>
 		</div>
 	</div>
-
-	{% endblock content %}
 </div>
+<script src="{% static 'js/calendar.js' %}"></script>
+{% endblock content %}

@@ -64,7 +64,7 @@
   {% if next_event and page_title == "My Events" %}
   <b>Your next event is on
   {{user.get_fut_participations_registered.0.date.datetime_start|date:"l, M jS g:i A" }} for
-  {{user.get_fut_participations_registered.0.date.clinic.event.title}}</b>
+  {{user.get_fut_participations_registered.0.date.activity.event.title}}</b>
   {% elif page_title == "My Events" %}
   You haven't registered for any event yet
   {% endif %}

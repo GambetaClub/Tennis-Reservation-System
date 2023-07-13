@@ -4,3 +4,9 @@ docker-compose -f docker-compose.yml run --rm app sh -c "<command>"
 
 Run a command with the deployment shell:
 docker-compose -f docker-compose-deploy.yml run --rm app sh -c "<command>"
+
+Make migrations to the database:
+docker-compose run app python manage.py makemigrations
+
+Apply migrations to the database:
+docker-compose run app python manage.py migrate
