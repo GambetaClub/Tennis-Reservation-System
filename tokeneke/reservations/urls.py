@@ -21,10 +21,11 @@ urlpatterns = [
     path('reset_password_complete', auth_views.PasswordResetCompleteView.as_view(
         template_name="auth/password_reset_done.html"),  name="password_reset_complete"),
     path('create_event', views.create_event, name='create_event'),
-    path('create_clinic', views.create_clinic, name='create_clinic'),
+    path('create_activity', views.create_activity, name='create_activity'),
     path('edit_profile', views.edit_profile, name='edit_profile'),
     path('edit_event/<int:event_id>', views.edit_event, name='edit_event'),
-    path('edit_clinic/<int:clinic_id>', views.edit_clinic, name='edit_clinic'),
+    path('edit_activity/<int:activity_id>',
+         views.edit_activity, name='edit_activity'),
     path('filter_events', views.filter_events, name='filter_events'),
     path('edit_date/<int:date_id>', views.edit_date, name='edit_date'),
     path('event/<int:event_id>', views.event, name='event'),
@@ -32,7 +33,9 @@ urlpatterns = [
          views.event_participants, name='event_participants'),
     path('add_participant', views.add_participant, name='add_participant'),
     path('my_events', views.my_events, name='my_events'),
-    path('calendar', views.calendar, name='calendar')
+    path('calendar/', views.calendar_resolver, name='calendar'),
+    path('calendar/<str:date>', views.calendar_view, name='calendar_view')
+
 
 ]
 

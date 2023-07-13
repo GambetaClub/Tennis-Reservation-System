@@ -1,4 +1,5 @@
 Django>=4.1.7,<4.2
+psycopg2-binary==2.9.6
 psycopg2>=2.8.6,<2.9
 uWSGI>=2.0.21,<2.1
 Pillow>=9.4.0,<9.5
@@ -7,3 +8,4 @@ django-recurrence==1.11.1
 python-dateutil==2.8.2
 pytz==2021.3
 recurrent==0.4.1
+crispy-bootstrap4==2022.1

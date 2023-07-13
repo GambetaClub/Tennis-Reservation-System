@@ -1,6 +1,5 @@
 from django.db import models
 from .validators import validate_percentage
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 import recurrence.fields
 from django.utils.timezone import make_aware
@@ -17,12 +16,12 @@ Helper functions
 
 
 def make_date_aware(date):
-    return make_aware(date, timezone=pytz.timezone("America/New_York"))
+    return make_aware(date, timezone=timezone.get_current_timezone())
 
 
 def is_today(date):
-    aware_date = make_aware(date, timezone=pytz.timezone(
-        "America/New_York")).strftime("%d %b, %Y")
+    aware_date = make_aware(
+        date, timezone.get_current_timezone()).strftime("%d %b, %Y")
     today = timezone.now().date().strftime("%d %b, %Y")
     return aware_date == today
 
@@ -162,20 +161,20 @@ class Event(models.Model):
     def __str__(self):
         return self.title
 
-    def get_clinics(self):
-        return Clinic.objects.filter(event=self)
+    def get_activities(self):
+        return Activity.objects.filter(event=self)
 
     def get_fut_dates(self, number=40):
-        # Returns a list of the future Dates of the Event's Clinics
-        clinics = Clinic.objects.filter(event__id=self.id)
-        if clinics:
+        # Returns a list of the future Dates of the Event's activities
+        activities = Activity.objects.filter(event__id=self.id)
+        if activities:
             # Retrieves the future dates
-            dates = Date.objects.filter(clinic__event__id=self.id).filter(
+            dates = Date.objects.filter(activity__event__id=self.id).filter(
                 datetime_start__gte=timezone.now()).order_by('datetime_start')[:number]
             if not dates:
                 # If there are no future dates, then it will return the past dates
                 dates = Date.objects.filter(
-                    clinic__event__id=self.id).order_by('-datetime_start')
+                    activity__event__id=self.id).order_by('-datetime_start')
             return dates[:number]
         return []
 
@@ -195,7 +194,7 @@ class Event(models.Model):
             date = self.get_next_date().get_datetime_start()
             return date.strftime('%A, %b %-d - %I:%M %p')
         except:
-            return "No more clinics"
+            return "No more activities"
 
     def get_remaining_days(self):
         # Returns a string of the remaining days for the fut Date
@@ -215,7 +214,7 @@ class Event(models.Model):
                 remaining = str(remaining + 1) + " days"
             return remaining
         except:
-            return "No more clinics"
+            return "No more activities"
 
     def get_fullness(self):
         # Returns the fullness of the fut Date
@@ -238,32 +237,68 @@ class Event(models.Model):
             "No next date"
 
 
-class Clinic(models.Model):
-    event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    title = title = models.CharField(
-        'Clinic Title', max_length=120, blank=True)
-    recurrences = recurrence.fields.RecurrenceField()
+class Activity(models.Model):
+    TYPE_PRIVATE = 'private'
+    TYPE_COURT = 'court'
+    TYPE_CLINIC = 'clinic'
+    TYPE_CHOICES = (
+        (TYPE_PRIVATE, 'Private Lesson'),
+        (TYPE_COURT, 'Court Reservation'),
+        (TYPE_CLINIC, 'Clinic')
+    )
+    type = models.CharField(
+        max_length=20,
+        choices=TYPE_CHOICES,
+    )
+    event = models.ForeignKey(
+        Event, on_delete=models.CASCADE, blank=True, null=True, default=None)
+    title = models.CharField(
+        'Activity Title', max_length=120, blank=True)
+    recurrences = recurrence.fields.RecurrenceField(blank=True, null=True)
     start_time = models.TimeField("Start Time", blank=True, null=True)
     end_time = models.TimeField("End Time", blank=True, null=True)
-    capacity = models.IntegerField("Capacity", default=12)
+    capacity = models.IntegerField("Capacity", default=4)
     is_active = models.BooleanField("Active", default=True)
 
-    REQUIRED_FIELDS = ['title', 'start_time',
+    REQUIRED_FIELDS = ['title', 'start_time', 'type'
                        'end_time', 'capacity', 'is_active']
+
+    def __str__(self):
+        return f"{self.get_title()} - {self.get_dates_desc()}"
+
+    def clean(self):
+        if self.type == Activity.TYPE_CLINIC:
+            if self.event == None:
+                raise ValidationError(
+                    'A clinic must be linked to an Event'
+                )
+        if self.type == Activity.TYPE_PRIVATE:
+            if 1 < self.capacity > 4:
+                raise ValidationError(
+                    'A private lesson must have a capacity between 1 and 4'
+                )
+
+    def get_title(self):
+        event = self.get_event()
+        if event:
+            if isinstance(event, Event):
+                return str(f"{self.get_event().title}")
+        else:
+            return str(f"{self.title}")
 
     def get_event(self):
         try:
-            return Event.objects.get(clinic__id=self.id)
+            return Event.objects.get(activity__id=self.id)
         except:
             return None
 
     def get_all_dates(self):
-        return Date.objects.filter(clinic=self).order_by('datetime_start')
+        return Date.objects.filter(activity=self).order_by('datetime_start')
 
     def get_fut_dates(self, number=40):
-        # Returns a query list with the "number" amount of future Date instances of the clinic
+        # Returns a query list with the "number" amount of future Date instances of the activity
         try:
-            fut_dates = Date.objects.filter(clinic__id=self.id).filter(
+            fut_dates = Date.objects.filter(activity__id=self.id).filter(
                 datetime_start__gte=timezone.now()).order_by('datetime_start')[:number]
             return fut_dates
         except Exception as err:
@@ -271,7 +306,7 @@ class Clinic(models.Model):
             return None
 
     def get_dates_desc(self):
-        # Returns a string with the description of the fut date of the clinic
+        # Returns a string with the description of the fut date of the activity
         try:
             return str("On " + self.get_fut_dates(1)[0].print_start_date())
         except:
@@ -281,7 +316,7 @@ class Clinic(models.Model):
         # Returns the date instance based on the datetime_start
         try:
             date = Date.objects.get(
-                clinic_id=self.id, datetime_start=datetime_start)
+                activity_id=self.id, datetime_start=datetime_start)
             return date
         except:
             return None
@@ -320,7 +355,7 @@ class Clinic(models.Model):
                 hour=self.start_time.hour, minute=self.start_time.minute, second=0, microsecond=0))
             datetime_end = make_date_aware(date.replace(
                 hour=self.end_time.hour, minute=self.end_time.minute, second=0, microsecond=0))
-            date = Date(clinic=self, datetime_start=datetime_start,
+            date = Date(activity=self, datetime_start=datetime_start,
                         datetime_end=datetime_end, capacity=self.capacity)
             dates_instances.append(date)
 
@@ -336,35 +371,49 @@ class Clinic(models.Model):
             date.capacity = self.capacity
             date.save()
 
-    def __str__(self):
-        event = self.get_event()
-        if event:
-            if isinstance(event, Event):
-                return str(self.get_event().title + " - " + self.get_dates_desc())
-            elif event.count() > 1:
-                return str("Error here because this clinic has many events " + self.get_dates_desc())
-        else:
-            return str("No event yet - " + self.get_dates_desc())
-
 
 class Date(models.Model):
-    clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE)
+    STADIUM_COURT = 'Stadium'
+    COURT_1 = '1'
+    COURT_2 = '2'
+    COURT_3 = '3'
+    COURT_4 = '4'
+    COURT_5 = '5'
+    COURT_6 = '6'
+    COURT_7 = '7'
+
+    COURT_CHOICES = (
+        (STADIUM_COURT, 'Stadium Court'),
+        (COURT_1, 'Court 1'),
+        (COURT_2, 'Court 2'),
+        (COURT_3, 'Court 3'),
+        (COURT_4, 'Court 4'),
+        (COURT_5, 'Court 5'),
+        (COURT_6, 'Court 6'),
+        (COURT_7, 'Court 7'),
+    )
+
+    activity = models.ForeignKey(Activity, on_delete=models.CASCADE)
     datetime_start = models.DateTimeField(blank=False, null=False)
     datetime_end = models.DateTimeField(blank=False, null=False)
     participants = models.ManyToManyField(
         Member, through='Participation', blank=True)
     capacity = models.IntegerField("Capacity", default=12)
-    REQUIRED_FIELDS = ['datetime_start', 'datetime_end', 'capacity']
+    court = models.CharField(
+        max_length=20,
+        choices=COURT_CHOICES,
+        default=STADIUM_COURT
+    )
+
+    REQUIRED_FIELDS = ['activity', 'datetime_start',
+                       'datetime_end', 'capacity', 'court']
 
     def __str__(self):
         date = self.get_datetime_start().strftime("%A %-m/%-d, %H:%M")
-        return str(self.get_event_name() + ' on ' + date)
+        return str(date + ' for ' + self.activity.get_title())
 
     def __hash__(self):
         return hash((self.datetime_start,))
-
-    # def __eq__(self, other):
-    #     return (self.datetime_start, ) == (other.datetime_start, )
 
     def is_registrable(self):
         time_until = self.datetime_start - make_aware(datetime.now())
@@ -373,8 +422,8 @@ class Date(models.Model):
         else:
             return True
 
-    def get_clinic(self):
-        return Clinic.objects.get(date=self)
+    def get_activity(self):
+        return Activity.objects.get(date=self)
 
     def get_all_parts(self):
         # Returns a list with all the participants with the ones that first registered first
@@ -397,7 +446,7 @@ class Date(models.Model):
 
     def get_event_name(self):
         try:
-            return Event.objects.get(clinic__date__id=self.id).title
+            return Event.objects.get(activity__date__id=self.id).title
         except:
             return "No event yet"
 
@@ -407,7 +456,7 @@ class Date(models.Model):
     def get_event(self):
         # Returns the event for the corresponding Date
         try:
-            event = Event.objects.get(clinic__date__id=self.id)
+            event = Event.objects.get(activity__date__id=self.id)
             return event
         except:
             return "No event found"
@@ -438,7 +487,7 @@ class Participation(models.Model):
     REQUIRED_FIELDS = ['member', 'date']
 
     def save(self, *args, **kwargs):
-        event = Event.objects.get(clinic__date=self.date)
+        event = Event.objects.get(activity__date=self.date)
         if event.gender != 'MIXED' and event.gender != self.member.gender:
             raise ValidationError(
                 f"{str(self.member)} can't participate in a event for {event.get_gender_display().lower()}s.")
@@ -454,7 +503,7 @@ class Participation(models.Model):
 
     def get_event(self):
         try:
-            event = Event.objects.get(clinic__date=self.date)
+            event = Event.objects.get(activity__date=self.date)
             return event
         except:
             print("Get event in participation exception")

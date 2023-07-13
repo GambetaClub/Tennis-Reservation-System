@@ -17,7 +17,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'changeme')
 
-DEBUG = True
+# DEBUG = True
 DEBUG = bool(int(os.environ.get('DEBUG', 0)))
 
 ALLOWED_HOSTS = []
@@ -38,10 +38,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'reservations',
     'crispy_forms',
+    "crispy_bootstrap4",
     'recurrence'
 ]
 
-CRISPY_TEMPLATE_PACK = 'bootstrap4'
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap4"
+
+CRISPY_TEMPLATE_PACK = "bootstrap4"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -116,7 +119,7 @@ LOGIN_URL = 'login'
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = "America/New_York"
+TIME_ZONE = "America/Chicago"
 
 USE_I18N = True
 
