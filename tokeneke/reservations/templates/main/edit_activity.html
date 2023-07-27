@@ -8,6 +8,7 @@
 >
 	<div class="form-container">
 		{% csrf_token %} {{ form.media }}
+		{% if activity.event %}
 		<div class="row justify-content-center">
 			<div class="form-group col-md-6">
 				{{ form.event.label }}:
@@ -15,6 +16,7 @@
 				{{ form.event }}
 			</div>
 		</div>
+		{% endif %}
 		<div class="row justify-content-center">
 			<div class="form-group col-md-6">
 				{{ form.title.label }} {{ form.title }}

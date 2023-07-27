@@ -1,136 +1,189 @@
-{% extends  'main/base.html' %}
+{% extends 'main/base.html' %}
+
 {% block head %}
 {% load static %}
 <link rel="stylesheet" href="{% static 'css/home.css' %}">
 <script src="{% static 'js/home.js' %}"></script>
 {% endblock %}
+
 {% block content %}
 <div class="app-container">
-<div class="app-header">
-  <div class="app-header-left">
-    <span class="app-icon"></span>
-    <p class="app-name">Portfolio</p>
-    {% csrf_token %}
-    <div class="search-wrapper">
+  <div class="app-header">
+    <div class="app-header-left">
+      <span class="app-icon"></span>
+      <p class="app-name">Portfolio</p>
+      {% csrf_token %}
+      <div class="search-wrapper">
         <input id="search-input" name="search-input" class="search-input" type="text" placeholder="Search">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor"
-          stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="feather feather-search"
-          viewBox="0 0 24 24">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="feather feather-search" viewBox="0 0 24 24">
           <defs></defs>
           <circle cx="11" cy="11" r="8"></circle>
           <path d="M21 21l-4.35-4.35"></path>
         </svg>
-    </div>
-  </div>
-  <div class="app-header-right">
-    {% if user.is_staff %}
-    <button class="add-btn" title="Add New Project">
-    <i class='bx bx-plus' ></i>
-    </button>
-    {% endif %}
-    <a href="{% url 'edit_profile' %}">
-    <button class="profile-btn">
-    <img src="{{ user.profile_pic.url }}" />
-    <span>{{request.user}}</span>
-    </button>
-    </a>
-  </div>
-</div>
-<div class="app-content">
-<div class="projects-section">
-  <div class="projects-section-header">
-    <p>{{ page_title }}</p>
-    <p class="time">{% now "l, F j" %}</p>
-  </div>
-  <div class="projects-section-line">
-    <div class="projects-status">
-      {% for title, count in titles.items  %}
-      <div class="item-status">
-        <span class="status-number">{{ count }}</span>
-        <span class="status-type">{{ title }}</span>
       </div>
-      {% empty %}
-      {% endfor %}
     </div>
-    <div class="view-actions">
-      <button class="view-btn list-view" title="List View">
-      <i class='bx bx-list-ul'></i>
+    <div class="app-header-right">
+      {% if user.is_staff %}
+      <button class="add-btn" title="Add New Project">
+        <i class='bx bx-plus'></i>
       </button>
-      <button class="view-btn grid-view active" title="Grid View">
-      <i class='bx bxs-grid-alt' ></i>
-      </button>
+      {% endif %}
+      <a href="{% url 'edit_profile' %}">
+        <button class="profile-btn">
+          <img src="{{ user.profile_pic.url }}" />
+          <span>{{ request.user }}</span>
+        </button>
+      </a>
     </div>
   </div>
-  {% if next_event and page_title == "My Events" %}
-  <b>Your next event is on
-  {{user.get_fut_participations_registered.0.date.datetime_start|date:"l, M jS g:i A" }} for
-  {{user.get_fut_participations_registered.0.date.activity.event.title}}</b>
-  {% elif page_title == "My Events" %}
-  You haven't registered for any event yet
-  {% endif %}
-  <div class="project-boxes jsGridView">
-    {% for event in events %}
-    <div class="project-box-wrapper">
-      {% if event.gender == 'M' %}
-      <div class="project-box men">
-        {% elif event.gender == 'F' %}
-        <div class="project-box ladies">
+  <div class="app-content">
+    <div class="projects-section">
+      <div class="projects-section-header">
+        <p>{{ page_title }}</p>
+        <p class="time">{% now "l, F j" %}</p>
+      </div>
+      <div class="projects-section-line">
+        <div class="projects-status">
+          {% for title, count in titles.items %}
+          <div class="item-status">
+            <span class="status-number">{{ count }}</span>
+            <span class="status-type">{{ title }}</span>
+          </div>
+          {% empty %}
+          {% endfor %}
+        </div>
+        <div class="view-actions">
+          <button class="view-btn list-view" title="List View">
+            <i class='bx bx-list-ul'></i>
+          </button>
+          <button class="view-btn grid-view active" title="Grid View">
+            <i class='bx bxs-grid-alt'></i>
+          </button>
+        </div>
+      </div>
+      {% if next_activity and page_title == "My Activities" %}
+      <b>Your next event is {{ next_activity }}</b>
+      {% elif page_title == "My Activities" %}
+      You have no future activities yet
+      {% endif %}
+      <div class="project-boxes jsGridView">
+        {% for activity in activities %}
+        {% if activity.type == "clinic" %}
+        <div class="project-box-wrapper">
+          {% if activity.event.gender == 'M' %}
+          <div class="project-box men">
+          {% elif activity.event.gender == 'F' %}
+          <div class="project-box ladies">
           {% else %}
           <div class="project-box mixed">
-            {% endif %}
+          {% endif %}
             <div class="project-box-header">
-              <span>{{event.print_next_date}}</span>
+              <span>{{ activity.event.print_next_date }}</span>
               {% if user.is_staff %}
               <div class="more-wrapper">
-                <a class="project-btn-more" href="{% url 'edit_event' event.id %}"><i class='bx bx-dots-vertical-rounded'></i></a>
+                <a class="project-btn-more" href="{% url 'edit_event' activity.event.id %}">
+                  <i class='bx bx-dots-vertical-rounded'></i>
+                </a>
               </div>
               {% endif %}
             </div>
             <div class="project-box-content-header">
-              <a class href="{% url 'event' event.id %}"></a>
-              <p class="box-content-header">{{event.title}}</p>
+              <a href="{% url 'event' activity.event.id %}"></a>
+              <p class="box-content-header">{{ activity.get_title }}</p>
               <p class="box-content-subheader">
-                {% if event.gender == 'M' %} Men
-                {% elif event.gender == 'F' %} Ladies
-                {% else %} {{event.get_gender_display}}
-                {% endif %} <br>
-                {{event.get_team_display}}
+                {{activity.print_courts}} <br>
+                {{activity.get_formatted_duration}} <br>
+                {{activity.event.get_team_display}}
               </p>
             </div>
             <div class="box-progress-wrapper">
               <p class="box-progress-header">
-                {% if event.get_fut_date_rem_spots < 1 %}
+                {% if activity.event.get_fut_date_rem_spots < 1 %}
                 Full
-                {% elif event.get_fut_date_rem_spots == 1 %}
-                {{event.get_fut_date_rem_spots}} spot left
+                {% elif activity.event.get_fut_date_rem_spots == 1 %}
+                {{ activity.get_next_date.get_rem_spots }} spot left
                 {% else %}
-                {{event.get_fut_date_rem_spots}} spots left
+                {{ activity.get_next_date.get_rem_spots }} spots left
                 {% endif %}
               </p>
               <div class="box-progress-bar">
-                <span class="box-progress" style="width: {{event.get_fullness}};"></span>
+                <span class="box-progress" style="width: {{ activity.get_next_date.get_cap_pct }};"></span>
               </div>
             </div>
             <div class="project-box-footer">
               <button class="add-participant">
-              <a href="{% url 'event' event.id %}"><i class='bx bxs-user-plus'></i></a>
+                <a href="{% url 'event' activity.event.id %}">
+                  <i class='bx bxs-user-plus'></i>
+                </a>
               </button>
               <div class="participants">
-                {% for participant in event.get_participants %}
-                <img
-                  src="{{participant.profile_pic.url}}"
-                  alt="{{participant}}">
+                {% for participant in activity.get_participants %}
+                <img src="{{ participant.profile_pic.url }}" alt="{{ participant }}">
                 {% endfor %}
               </div>
               <div class="days-left">
-                <a href="{% url 'event_participants' event.id %}">
-                {{event.get_remaining_days}}
+                <a href="{% url 'event_participants' activity.event.id %}">
+                  {{ activity.get_remaining_days }}
                 </a>
               </div>
             </div>
           </div>
         </div>
-        {% endfor %} 
+        {% else %}
+        <div class="project-box-wrapper">
+          <div class="project-box court">
+            <div class="project-box-header">
+              <span>{{activity.print_next_date}}</span>
+              {% if user.is_staff %}
+              <div class="more-wrapper">
+                <a class="project-btn-more" href="{% url 'edit_activity' activity.id %}">
+                  <i class='bx bx-dots-vertical-rounded'></i>
+                </a>
+              </div>
+              {% endif %}
+            </div>
+            <div class="project-box-content-header">
+              <a href="{% url 'edit_activity' activity.id %}"></a>
+              <p class="box-content-header">{{ activity.get_type_display }}</p>
+              <p class="box-content-subheader">
+                {{activity.print_courts}} <br>
+                {{activity.get_formatted_duration}} <br>
+                {% if activity.type == 'private' %}
+                Pro: {{activity.get_pro}}
+                {% else %}
+                Host: {{activity.get_host}}
+                {% endif %}
+              </p>
+            </div>
+            <div class="box-progress-wrapper">
+              <p class="box-progress-header">
+                NUMERO 4
+              </p>
+              <div class="box-progress-bar">
+                <span class="box-progress" style="width: {{ activity.get_next_date.get_cap_pct }};"></span>
+              </div>
+            </div>
+            <div class="project-box-footer">
+              <button class="add-participant">
+                <a href="{% url 'edit_activity' activity.id %}">
+                  <i class='bx bxs-user-plus'></i>
+                </a>
+              </button>
+              <div class="participants">
+                {% for participant in activity.get_participants %}
+                <img src="{{ participant.profile_pic.url }}" alt="{{ participant }}">
+                {% endfor %}
+              </div>
+              <div class="days-left">
+                <a href="#">
+                  {{ activity.get_remaining_days }}
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+        {% endfor %}
       </div>
     </div>
   </div>

@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.exceptions import ObjectDoesNotExist
 from .validators import validate_percentage
 from django.utils.translation import gettext_lazy as _
 import recurrence.fields
@@ -97,16 +98,25 @@ class Member(AbstractBaseUser, PermissionsMixin):
 
     def get_fut_participations_registered(self):
         # Returns a query set with the future participations registered for
-        return Participation.objects.filter(member=self).filter(date__datetime_start__gte=timezone.now()).order_by('date__datetime_start')
+        return Participation.objects.filter(member=self, date__datetime_start__gte=timezone.now()).order_by('date__datetime_start')
+
+    def get_fut_activities_registered(self):
+        # Return a query with all the Activities the Member is registered for in the future.
+        return Activity.objects.filter(date__participation__member=self, date__datetime_start__gte=timezone.now()).distinct()
 
     def get_fut_events_registered(self):
-        # Returns a query set with the future events registered for
-        partis = self.get_fut_participations_registered()
-        events_ids = set()
-        for part in partis:
-            events_ids.add(part.get_event().id)
-        query_fut_events = Event.objects.filter(id__in=events_ids)
-        return query_fut_events
+        # Returns a query set with the future Events the Member is registered for.
+        return Event.objects.filter(activity__date__participation__member=self, activity__date__datetime_start__gte=timezone.now()).distinct()
+
+    def get_next_activity(self):
+        try:
+            return self.get_fut_activities_registered().order_by('date__datetime_start')[0]
+        except:
+            return None
+
+    def get_available_events(self):
+        excl_gen = 'F' if self.gender == 'M' else 'M'
+        return Activity.objects.filter(type='clinic', date__datetime_start__gte=timezone.now()).exclude(event__gender=excl_gen).distinct()
 
     def get_level(self):
         if self.level:
@@ -188,54 +198,6 @@ class Event(models.Model):
         except:
             return None
 
-    def print_next_date(self):
-        # Returns the future Date formatted date
-        try:
-            date = self.get_next_date().get_datetime_start()
-            return date.strftime('%A, %b %-d - %I:%M %p')
-        except:
-            return "No more activities"
-
-    def get_remaining_days(self):
-        # Returns a string of the remaining days for the fut Date
-        try:
-            remaining = (self.get_next_date().datetime_start -
-                         timezone.now()).days
-            if remaining < 0:
-                if remaining == -1:
-                    remaining = "Yesterday"
-                else:
-                    remaining = str(abs(remaining)) + " days ago"
-            elif remaining == 0:
-                remaining = 'Today'
-            elif remaining == 1:
-                remaining = 'Tomorrow'
-            else:
-                remaining = str(remaining + 1) + " days"
-            return remaining
-        except:
-            return "No more activities"
-
-    def get_fullness(self):
-        # Returns the fullness of the fut Date
-        fut_date = self.get_next_date()
-        if fut_date:
-            return fut_date.get_cap_pct()
-
-    def get_fut_date_rem_spots(self):
-        # Returns the remaining spots available
-        fut_date = self.get_next_date()
-        if fut_date:
-            return fut_date.get_rem_spots()
-        else:
-            return "No future date"
-
-    def get_participants(self):
-        try:
-            return self.get_next_date().get_all_parts()
-        except:
-            "No next date"
-
 
 class Activity(models.Model):
     TYPE_PRIVATE = 'private'
@@ -267,33 +229,44 @@ class Activity(models.Model):
         return f"{self.get_title()} - {self.get_dates_desc()}"
 
     def clean(self):
-        if self.type == Activity.TYPE_CLINIC:
-            if self.event == None:
-                raise ValidationError(
-                    'A clinic must be linked to an Event'
-                )
+        super().clean()
+        if self.type == Activity.TYPE_CLINIC and not self.event:
+            raise ValidationError(
+                f'A {self.get_type_display()} must be linked to an Event'
+            )
         if self.type == Activity.TYPE_PRIVATE:
             if 1 < self.capacity > 4:
                 raise ValidationError(
                     'A private lesson must have a capacity between 1 and 4'
                 )
+        if self.type != Activity.TYPE_CLINIC and self.event != None:
+            raise ValidationError(
+                f'A {self.get_type_display()} cannot be linked to an Event'
+            )
+
+    def get_next_date(self):
+        try:
+            next_date = Date.objects.filter(activity__id=self.id).filter(
+                datetime_start__gte=timezone.now()).order_by('datetime_start')
+            if next_date.count() > 0:
+                return next_date[0]
+            else:
+                return Date.objects.filter(
+                    activity__event__id=self.id).order_by('-datetime_start')[0]
+        except ObjectDoesNotExist as err:
+            return err
+
+    def is_clinic(self):
+        return self.type == Activity.TYPE_CLINIC
 
     def get_title(self):
-        event = self.get_event()
-        if event:
-            if isinstance(event, Event):
-                return str(f"{self.get_event().title}")
-        else:
+        try:
+            return self.event.title
+        except:
             return str(f"{self.title}")
 
-    def get_event(self):
-        try:
-            return Event.objects.get(activity__id=self.id)
-        except:
-            return None
-
     def get_all_dates(self):
-        return Date.objects.filter(activity=self).order_by('datetime_start')
+        return Date.objects.filter(activity__id=self.id).order_by('datetime_start')
 
     def get_fut_dates(self, number=40):
         # Returns a query list with the "number" amount of future Date instances of the activity
@@ -301,14 +274,51 @@ class Activity(models.Model):
             fut_dates = Date.objects.filter(activity__id=self.id).filter(
                 datetime_start__gte=timezone.now()).order_by('datetime_start')[:number]
             return fut_dates
-        except Exception as err:
-            print(f"{err=}, {type(err)=}")
-            return None
+        except ObjectDoesNotExist as err:
+            return err
+
+    def get_host(self):
+        return Participation.objects.filter(
+            date__id=self.get_next_date().id).order_by('date_registered')[0].member
+
+    def get_pro(self):
+        return self.get_next_date().get_pro()
+
+    def get_courts(self):
+        return self.get_next_date().court.all()
+
+    def print_courts(self):
+        courts_names = [court.name for court in self.get_courts()]
+        return ', '.join(courts_names)
+
+    def get_formatted_duration(self):
+        return self.get_next_date().get_formatted_duration()
+
+    def get_remaining_days(self):
+        # Returns a string of the remaining days for the fut Date
+        try:
+            remaining = (self.get_next_date().datetime_start -
+                         timezone.now()).days
+            if remaining < 0:
+                if remaining == -1:
+                    remaining = "Yesterday"
+                else:
+                    remaining = str(abs(remaining)) + " days ago"
+            elif remaining == 0:
+                remaining = 'Today'
+            elif remaining == 1:
+                remaining = 'Tomorrow'
+            else:
+                remaining = str(remaining + 1) + " days"
+            return remaining
+        except:
+            return "No more activities"
 
     def get_dates_desc(self):
-        # Returns a string with the description of the fut date of the activity
+        # Returns a string with the description of the fut or past dates of the activity
+        # if all dates are in the past.
         try:
-            return str("On " + self.get_fut_dates(1)[0].print_start_date())
+            return str("On " + self.get_next_date().print_start_date())
         except:
             return "No More Future Dates"
 
@@ -320,6 +330,19 @@ class Activity(models.Model):
             return date
         except:
             return None
+
+    def print_next_date(self):
+        # Returns the future Date formatted date
+        try:
+            return self.get_next_date().print_date()
+        except:
+            return "No date"
+
+    def get_participants(self):
+        try:
+            return self.get_next_date().get_all_parts()
+        except:
+            "No next date"
 
     def update_date_instances(self, old_occurrences=None, limit=30):
         """
@@ -372,15 +395,15 @@ class Activity(models.Model):
             date.save()
 
 
-class Date(models.Model):
-    STADIUM_COURT = 'Stadium'
-    COURT_1 = '1'
-    COURT_2 = '2'
-    COURT_3 = '3'
-    COURT_4 = '4'
-    COURT_5 = '5'
-    COURT_6 = '6'
-    COURT_7 = '7'
+class Court(models.Model):
+    STADIUM_COURT = 'Stadium Court'
+    COURT_1 = 'Court 1'
+    COURT_2 = 'Court 2'
+    COURT_3 = 'Court 3'
+    COURT_4 = 'Court 4'
+    COURT_5 = 'Court 5'
+    COURT_6 = 'Court 6'
+    COURT_7 = 'Court 7'
 
     COURT_CHOICES = (
         (STADIUM_COURT, 'Stadium Court'),
@@ -393,27 +416,32 @@ class Date(models.Model):
         (COURT_7, 'Court 7'),
     )
 
+    name = models.CharField(max_length=20, choices=COURT_CHOICES, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Date(models.Model):
     activity = models.ForeignKey(Activity, on_delete=models.CASCADE)
     datetime_start = models.DateTimeField(blank=False, null=False)
     datetime_end = models.DateTimeField(blank=False, null=False)
     participants = models.ManyToManyField(
         Member, through='Participation', blank=True)
     capacity = models.IntegerField("Capacity", default=12)
-    court = models.CharField(
-        max_length=20,
-        choices=COURT_CHOICES,
-        default=STADIUM_COURT
-    )
+    court = models.ManyToManyField(Court)
 
     REQUIRED_FIELDS = ['activity', 'datetime_start',
                        'datetime_end', 'capacity', 'court']
 
     def __str__(self):
-        date = self.get_datetime_start().strftime("%A %-m/%-d, %H:%M")
-        return str(date + ' for ' + self.activity.get_title())
+        return str(self.print_date() + ' for ' + self.activity.get_title())
 
     def __hash__(self):
         return hash((self.datetime_start,))
+
+    def print_date(self):
+        return self.get_datetime_start().strftime('%A, %b %-d - %I:%M%p')
 
     def is_registrable(self):
         time_until = self.datetime_start - make_aware(datetime.now())
@@ -422,8 +450,30 @@ class Date(models.Model):
         else:
             return True
 
+    def get_duration(self):
+        duration = self.datetime_end - self.datetime_start
+        return duration
+
+    def get_formatted_duration(self):
+        duration = self.get_duration()
+        days = duration.days
+        hours, remainder = divmod(duration.seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+
+        formatted_duration = ""
+        if days > 0:
+            formatted_duration += f"{days} day{'s' if days > 1 else ''} "
+        if hours > 0:
+            formatted_duration += f"{hours} hour{'s' if hours > 1 else ''} "
+        if minutes > 0:
+            formatted_duration += f"{minutes} minute{'s' if minutes > 1 else ''} "
+        if seconds > 0:
+            formatted_duration += f"{seconds} second{'s' if seconds > 1 else ''}"
+
+        return formatted_duration.strip()
+
     def get_activity(self):
-        return Activity.objects.get(date=self)
+        return Activity.objects.get(id=self.id)
 
     def get_all_parts(self):
         # Returns a list with all the participants with the ones that first registered first
@@ -451,15 +501,13 @@ class Date(models.Model):
             return "No event yet"
 
     def print_start_date(self):
-        return self.get_datetime_start().strftime(("%-m/%-d, %H:%M"))
+        return self.get_datetime_start().strftime(('%A, %b %-d - %I:%M%p'))
 
-    def get_event(self):
-        # Returns the event for the corresponding Date
+    def get_activity(self):
         try:
-            event = Event.objects.get(activity__date__id=self.id)
-            return event
+            return Activity.objects.get(date__id=self.id)
         except:
-            return "No event found"
+            return ObjectDoesNotExist
 
     def get_registered_count(self):
         return Participation.objects.filter(date__id=self.id).count()
@@ -477,20 +525,27 @@ class Date(models.Model):
         else:
             return '{:.0%}'.format(1 - self.get_rem_spots() / self.get_capacity())
 
+    def get_pro(self):
+        return "Roger Federer"
+
 
 class Participation(models.Model):
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
-    date = models.ForeignKey(Date, on_delete=models.CASCADE)
+    date = models.ForeignKey(
+        Date, on_delete=models.CASCADE, related_name='participation')
     date_registered = models.DateTimeField(default=timezone.now)
     description = models.TextField(blank=True, max_length=100)
 
     REQUIRED_FIELDS = ['member', 'date']
 
     def save(self, *args, **kwargs):
-        event = Event.objects.get(activity__date=self.date)
-        if event.gender != 'MIXED' and event.gender != self.member.gender:
-            raise ValidationError(
-                f"{str(self.member)} can't participate in a event for {event.get_gender_display().lower()}s.")
+        if self.date.get_activity().is_clinic():
+            event = Event.objects.get(activity__date__id=self.date.id)
+            if event.gender != 'MIXED' and event.gender != self.member.gender:
+                raise ValidationError(
+                    f"{str(self.member)} can't participate in a event for {event.get_gender_display().lower()}s.")
+            else:
+                super().save(*args, **kwargs)
         else:
             super().save(*args, **kwargs)
 
@@ -501,13 +556,27 @@ class Participation(models.Model):
             )
         ]
 
+    def get_activity(self):
+        try:
+            return Activity.objects.get(date=self.date)
+        except ObjectDoesNotExist:
+            return None
+
     def get_event(self):
         try:
-            event = Event.objects.get(activity__date=self.date)
-            return event
+            return Event.objects.get(activity__date=self.date)
         except:
-            print("Get event in participation exception")
-            return None
+            return ObjectDoesNotExist
+
+    def get_greater_parent(self):
+        """
+        Returns either the Event (if the Activity is a 'clinic' type), 
+        or the Activity (if the Activity is a 'private' or 'court' type)
+        """
+        if Activity.objects.get(date=self.date).type == 'clinic':
+            return self.get_event()
+        else:
+            return self.get_activity()
 
     def __str__(self):
         return str(self.member) + " for " + str(self.date)

@@ -43,10 +43,11 @@ class CreateParticipationForm(forms.ModelForm):
         cleaned_data = super().clean()
         member = cleaned_data.get('member')
         date = cleaned_data.get('date')
-        event = date.get_event()
-        if event.gender != 'MIXED' and event.gender != member.gender:
-            raise ValidationError(
-                f"{str(member)} can't participate in a event for {event.get_gender_display().lower()}s.")
+        activity = date.get_activity()
+        if activity.has_event():
+            if activity.event.gender != 'MIXED' and activity.event.gender != member.gender:
+                raise ValidationError(
+                    f"{str(member)} can't participate in a event for {activity.get_gender_display().lower()}s.")
         return cleaned_data
 
 

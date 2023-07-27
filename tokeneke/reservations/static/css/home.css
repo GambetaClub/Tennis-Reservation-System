@@ -29,6 +29,8 @@
   --ladies-bg-color: #ffd3e2;
   --mixed-color: #ff942e;
   --mixed-bg-color: #fee4cb;
+  --court-color: #34c471;
+  --court-bg-color: #c8f7dc;
 }
 
 .dark:root {
@@ -394,7 +396,7 @@ a {
   flex-wrap: wrap;
 }
 .project-boxes.jsGridView .project-box-wrapper {
-  width: 33.3%;
+  width: 32%;
 }
 .project-boxes.jsListView .project-box {
   display: flex;
@@ -485,6 +487,18 @@ a {
 
 .mixed a {
   color: var(--mixed-color)
+}
+
+.court {
+  background-color: var(--court-bg-color);
+}
+
+.court span.box-progress {
+  background-color: var(--court-color);
+}
+
+.court a {
+  color: var(--court-color);
 }
 
 .project-box-header {

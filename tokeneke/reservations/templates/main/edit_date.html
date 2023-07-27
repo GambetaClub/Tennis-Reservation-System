@@ -35,6 +35,18 @@
 				Save Date
 			</button>
 		</div>
+		<br>
+		<div class="row justify-content-center">
+			<div class="form-group col-md-6">
+				<input type="text" id="filterInput" onkeyup="filterParticipants()" placeholder="Filter participants" class="form-control">
+			</div>
+		</div>
+		<div class="row justify-content-center">
+			<div class="form-group col-md-6">
+				{{ form.participants.label }}
+				{{ form.participants }}
+			</div>
+		</div>
 	</div>
 </form>
 {% endblock content %}

@@ -35,7 +35,7 @@ $(document).on('submit', '#dates-form', function (e) {
 				icon: 'success',
 				confirmButtonText: 'Thank you!',
 			}).then(() => {
-				window.location.href = '/my_events'
+				window.location.href = '/my_activities'
 			})
 			return false
 		},

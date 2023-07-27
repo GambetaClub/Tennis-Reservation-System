@@ -7,10 +7,8 @@ from django.utils.translation import gettext_lazy as _
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponseBadRequest
 from django.http import JsonResponse
-from .models import Event, Activity, Date, Participation
+from .models import Event, Activity, Date, Participation, Court
 from django.utils import timezone
-from django.core import serializers
-from django.db.migrations.recorder import MigrationRecorder
 from datetime import date as datetimedate
 import json
 from django.contrib.auth import authenticate, login, logout
@@ -18,10 +16,18 @@ from django.contrib.auth.decorators import login_required
 from .constants import *
 
 
-def get_available_events(request):
-    request.user.get_fut_events_registered()
-    excl_gen = 'F' if request.user.gender == 'M' else 'M'
-    return Event.objects.filter(activity__date__datetime_start__gte=timezone.now()).exclude(gender=excl_gen).distinct()
+def create_courts():
+    if Court.objects.all().count() == 0:
+        Court.objects.bulk_create([
+            Court(name='Stadium Court'),
+            Court(name='Court 1'),
+            Court(name='Court 2'),
+            Court(name='Court 3'),
+            Court(name='Court 4'),
+            Court(name='Court 5'),
+            Court(name='Court 6'),
+            Court(name='Court 7'),
+        ])
 
 
 @login_required
@@ -37,35 +43,31 @@ def filter_events(request):
 
 @login_required
 def home(request):
-
+    create_courts()
     # Querying all the events that have a next date after today. The next date field takes
     # care of giving the next date based on todays date.
-    events = get_available_events(request)
+    activities = request.user.get_available_events()
     return render(request, 'main/home.html', {
-        'events': events,
+        'activities': activities,
         'page_title': 'Events Available',
         'titles': {
             'Registered Dates': request.user.get_fut_participations_registered().count(),
             'Registered Events': request.user.get_fut_events_registered().count(),
-            'Events Available': events.count()
+            'Events Available': activities.count()
         }
     })
 
 
 @login_required
-def my_events(request):
-    user_events = request.user.get_fut_events_registered()
-    try:
-        next_event = request.user.get_fut_participations_registered()[0]
-    except:
-        next_event = None
+def my_activities(request):
+    user_activities = request.user.get_fut_activities_registered()
     return render(request, 'main/home.html', {
-        'page_title': 'My Events',
-        'events': user_events,
-        'next_event': next_event,
+        'page_title': 'My Activities',
+        'activities': user_activities,
+        'next_activity': request.user.get_next_activity(),
         'titles': {
             'Registered Dates': request.user.get_fut_participations_registered().count(),
-            'Registered Events': user_events.count(),
+            'Registered Activities': user_activities.count(),
         }
     })
 
@@ -150,7 +152,6 @@ def create_activity(request):
             messages.success(request, 'You created the activity successfully.')
             return redirect("home")
         else:
-
             return HttpResponseBadRequest("Something happened")
     return render(request, 'main/create_activity.html', {'form': form})
 
@@ -187,7 +188,6 @@ def edit_activity(request, activity_id):
     old_occurrences = list(activity.recurrences.occurrences(dtend=date_limit))
     form = CreateActivityForm(request.POST or None, instance=activity)
     if form.is_valid():
-        print("valid!!")
         new_occurrences = list(
             form.instance.recurrences.occurrences(dtend=date_limit))
         # If the time of the activity it's changed, then all dates should be deleted
@@ -212,7 +212,7 @@ def edit_activity(request, activity_id):
         return redirect('home')
 
     return render(request, 'main/edit_activity.html',
-                  {'event': activity.get_event(),
+                  {'event': activity.event,
                    'activity': activity,
                    'dates': activity.get_all_dates(),
                    'form': form})
@@ -225,8 +225,8 @@ def edit_date(request, date_id):
     form = CreateDateForm(request.POST or None, instance=date)
     if form.is_valid():
         form.save()
-        messages.info(request, f"You edited the date: {date}.")
-        return redirect('home')
+        messages.success(request, f"You edited the date: {date}.")
+        return redirect("home")
     participants = date.get_all_parts()
     return render(request, 'main/edit_date.html',
                   {'date': date,
@@ -252,7 +252,7 @@ def event_participants(request, event_id):
     event = Event.objects.get(id=event_id)
     on_wait = []
     # Returns the first date on the list, if empty then it returns None
-    next_date = next(iter(event.get_fut_dates(1)), None)
+    next_date = event.get_next_date()
     if next_date:
         on_wait = next_date.get_parts_on_wait()
     return render(request, 'main/court_assign.html', {

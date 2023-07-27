@@ -35,9 +35,9 @@
           <i class='bx bx-tennis-ball'></i>
           <span class="nav__name">Events</span>
         </a>
-        <a href="{% url 'my_events' %}" {% if request.resolver_match.url_name == 'my_events' %}class="nav__link active-link" {% endif %}>
+        <a href="{% url 'my_activities' %}" {% if request.resolver_match.url_name == 'my_activities' %}class="nav__link active-link" {% endif %}>
           <i class='bx bx-calendar-star' ></i>
-          <span class="nav__name">My Events</span>
+          <span class="nav__name">My Activities</span>
         </a>
         {% if user.is_staff %}
         <a href="{% url 'edit_all_events' %}" {% if request.resolver_match.url_name == 'edit_all_events' %}class="nav__link active-link" {% endif %}>
