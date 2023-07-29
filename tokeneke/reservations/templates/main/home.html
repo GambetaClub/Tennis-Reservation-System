@@ -78,7 +78,7 @@
           <div class="project-box mixed">
           {% endif %}
             <div class="project-box-header">
-              <span>{{ activity.event.print_next_date }}</span>
+              <span>{{ activity.print_next_date }}</span>
               {% if user.is_staff %}
               <div class="more-wrapper">
                 <a class="project-btn-more" href="{% url 'edit_event' activity.event.id %}">

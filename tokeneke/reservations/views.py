@@ -8,7 +8,6 @@ from django.shortcuts import get_object_or_404
 from django.http import HttpResponseBadRequest
 from django.http import JsonResponse
 from .models import Event, Activity, Date, Participation, Court
-from django.utils import timezone
 from datetime import date as datetimedate
 import json
 from django.contrib.auth import authenticate, login, logout
@@ -346,10 +345,15 @@ def calendar_view(request, date):
         activity = date.activity
         duration = (date.datetime_end -
                     date.datetime_start).total_seconds() / (30 * 60)
+
+        # Get the list of court names using values_list()
+        courts_list = list(date.court.values_list('name', flat=True))
+
         date_dict = {
             'datetime_start': date.datetime_start.isoformat(),
             'datetime_end': date.datetime_end.isoformat(),
             'capacity': date.capacity,
+            'court': courts_list,
             'duration': duration,
             'activity': {
                 'type': activity.type,
@@ -360,6 +364,7 @@ def calendar_view(request, date):
                 'is_active': activity.is_active,
             }
         }
+
         dates_list.append(date_dict)
 
     dates_json = json.dumps(dates_list)

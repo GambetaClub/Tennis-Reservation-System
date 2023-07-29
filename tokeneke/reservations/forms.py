@@ -1,7 +1,7 @@
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, UserChangeForm
 from .models import Member, Event, Participation, Activity, Date
 from django import forms
-from django.forms import TextInput, Textarea, Select, CheckboxInput, TimeInput, DateTimeInput, MultipleChoiceField
+from django.forms import TextInput, Textarea, Select, CheckboxInput, TimeInput, DateTimeField, SplitDateTimeField, DateTimeInput
 from django.core.exceptions import ValidationError
 
 
@@ -57,20 +57,81 @@ class MemberAuthForm(AuthenticationForm):
         fields = ['email', 'password']
 
 
+class CreateDateAdminForm(forms.ModelForm):
+    class Meta:
+        model = Date
+        fields = ['activity', 'datetime_start', 'datetime_end',
+                  'capacity', 'court', 'participants']
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        datetime_start = cleaned_data.get('datetime_start')
+        datetime_end = cleaned_data.get('datetime_end')
+        court = cleaned_data.get('court')
+
+        # Check for overlapping dates
+        overlapping_dates = Date.objects.filter(
+            # Dates are for the same court
+            court__in=court,
+            # The start is before this date's end
+            datetime_start__lt=datetime_end,
+            # The end is after this date's start
+            datetime_end__gt=datetime_start
+        )
+
+        if self.instance.pk:  # if instance exists, exclude it from the queryset
+            overlapping_dates = overlapping_dates.exclude(pk=self.instance.pk)
+
+        if overlapping_dates.exists():
+            raise ValidationError(
+                'There is an overlapping date on the same court.')
+
+        return cleaned_data
+
+
 class CreateDateForm(forms.ModelForm):
     class Meta:
         model = Date
-        fields = ['activity', 'datetime_start',
-                  'datetime_end', 'capacity', 'court', 'participants']
+        fields = '__all__'
 
         widgets = {
             'activity': Select(attrs={'class': 'form-control'}),
-            'datetime_start': DateTimeInput(attrs={'class': 'form-control'}),
-            'datetime_end': DateTimeInput(attrs={'class': 'form-control'}),
+            'datetime_start': TextInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
+            'datetime_end': TextInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
             'capacity': TextInput(attrs={'type': 'number', 'class': 'form-control'}),
-            'court':  Select(attrs={'class': 'form-control'}),
+            'court':  forms.CheckboxSelectMultiple(),
             'participants': forms.CheckboxSelectMultiple(),
         }
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        datetime_start = cleaned_data.get('datetime_start')
+        datetime_end = cleaned_data.get('datetime_end')
+        court = cleaned_data.get('court')
+
+        # If these variables are None, that means validation failed for these fields. So, we can skip the overlap check.
+        if datetime_start is not None and datetime_end is not None and court is not None:
+            # Check for overlapping dates
+            overlapping_dates = Date.objects.filter(
+                # Dates are for the same court
+                court__in=court,
+                # The start is before this date's end
+                datetime_start__lt=datetime_end,
+                # The end is after this date's start
+                datetime_end__gt=datetime_start
+            )
+
+            if self.instance.pk:  # if instance exists, exclude it from the queryset
+                overlapping_dates = overlapping_dates.exclude(
+                    pk=self.instance.pk)
+
+            if overlapping_dates.exists():
+                self.add_error(
+                    'court', 'There is an overlapping date on the same court.')
+
+        return cleaned_data
 
 
 class CreateEventForm(forms.ModelForm):

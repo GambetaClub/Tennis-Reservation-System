@@ -1,52 +1,86 @@
 {% extends 'main/base.html' %} {% block head %} {% load static %}
 <link rel="stylesheet" href="{% static 'css/edit_forms.css' %}" />
+<script src="{% static 'js/forms.js' %}"></script>
 {% endblock head %} {% block content %}
-<form
-	method="post"
-	class="edit-form"
-	action="{% url 'edit_date' date.id %}"
->
-	<div class="form-container">
-		{% csrf_token %} {{ form.media }}
-		<div class="row justify-content-center">
-			<div class="form-group col-md-6">
-				<a href="{% url 'edit_activity' activity.id %}">{{activity}}</a>
-				{{ form.activity }}
+
+
+<form method="post" class="edit-form" action="{% url 'edit_date' date.id %}">
+    <div class="form-container">
+        {% csrf_token %} 
+        {{ form.media }}
+        <div class="row justify-content-center">
+            <div class="form-group col-md-6">
+                <a href="{% url 'edit_activity' activity.id %}">{{activity}}</a>
+                {{ form.activity }}
+				{% if form.activity.errors %}
+				<span class="form-error" role="alert">
+					{{ form.activity.errors }}
+				</span>
+				{% endif %}
 			</div>
-		</div>
-		<div class="row justify-content-center">
-			<div class="form-group col-md-3">
-				{{ form.datetime_start.label }} {{ form.datetime_start }}
-			</div>
-			<div class="form-group col-md-3">
-        {{ form.datetime_end.label }} {{ form.datetime_end }}
-      </div>
-		</div>
-		<div class="row justify-content-center">
-			<div class="form-group col-md-3">
-				{{ form.capacity.label }} {{ form.capacity }}
-			</div>
-			<div class="form-group col-md-3">
-				{{ form.court.label }} {{ form.court }}
-			</div>
-		</div>
-		<div class="row justify-content-center">
-			<button type="submit" class="btn btn-primary mb-2">
-				Save Date
-			</button>
-		</div>
-		<br>
-		<div class="row justify-content-center">
-			<div class="form-group col-md-6">
-				<input type="text" id="filterInput" onkeyup="filterParticipants()" placeholder="Filter participants" class="form-control">
-			</div>
-		</div>
-		<div class="row justify-content-center">
-			<div class="form-group col-md-6">
-				{{ form.participants.label }}
-				{{ form.participants }}
-			</div>
-		</div>
-	</div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="form-group col-md-3">
+                {{ form.datetime_start.label }} 
+                {{ form.datetime_start }}
+                {% if form.datetime_start.errors %}
+				<span class="form-error" role="alert">
+					{{ form.datetime_start.errors }}
+				</span>
+				{% endif %}
+            </div>
+            <div class="form-group col-md-3">
+                {{ form.datetime_end.label }} 
+                {{ form.datetime_end }}
+                {% if form.datetime_end.errors %}
+				<span class="form-error" role="alert">
+					{{ form.datetime_end.errors }}
+				</span>
+				{% endif %}
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="form-group col-md-3">
+                {{ form.capacity.label }} 
+                {{ form.capacity }}
+                {% if form.capacity.errors %}
+				<span class="form-error" role="alert">
+					{{ form.capacity.errors }}
+				</span>
+				{% endif %}
+            </div>
+            <div class="form-group col-md-3">
+                {{ form.court }}
+                {% if form.court.errors %}
+				<span class="form-error" role="alert">
+					{{ form.court.errors }}
+				</span>
+				{% endif %}
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <button type="submit" class="btn btn-primary mb-2">
+                Save Date
+            </button>
+        </div>
+        <br>
+        <div class="row justify-content-center">
+            <div class="form-group col-md-6">
+                <input type="text" id="filterInput" onkeyup="filterParticipants()" placeholder="Filter participants" class="form-control">
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="form-group col-md-6">
+                {{ form.participants.label }}
+                {{ form.participants }}
+                {% if form.participants.errors %}
+				<div class="alert alert-danger" role="alert">
+					{{ form.participants.errors }}
+				</div>
+				{% endif %}
+            </div>
+        </div>
+    </div>
 </form>
+
 {% endblock content %}

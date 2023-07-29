@@ -5,9 +5,8 @@ from django.utils.translation import gettext_lazy as _
 import recurrence.fields
 from django.utils.timezone import make_aware
 from django.utils import timezone
-import pytz
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from django.core.exceptions import ValidationError
 from .constants import *
 
@@ -230,19 +229,41 @@ class Activity(models.Model):
 
     def clean(self):
         super().clean()
+
+        errors = {}
+
+        if self.start_time is not None and self.end_time is not None:
+            # Check that times are on the hour or half hour
+            if self.start_time.minute not in [0, 30]:
+                errors['start_time'] = ValidationError(
+                    'Start time must be on the hour or half hour')
+            if self.end_time.minute not in [0, 30]:
+                errors['end_time'] = ValidationError(
+                    'End time must be on the hour or half hour')
+
+            # Check that times are between 6AM and 10PM
+            if not time(6, 0) <= self.start_time <= time(22, 0):
+                errors['start_time'] = ValidationError(
+                    'Start time must be between 6:00 AM and 10:00 PM')
+            if not time(6, 0) <= self.end_time <= time(22, 0):
+                errors['end_time'] = ValidationError(
+                    'End time must be between 6:00 AM and 10:00 PM')
+
         if self.type == Activity.TYPE_CLINIC and not self.event:
-            raise ValidationError(
-                f'A {self.get_type_display()} must be linked to an Event'
-            )
+            errors['type'] = ValidationError(
+                f'A {self.get_type_display()} must be linked to an Event')
+
         if self.type == Activity.TYPE_PRIVATE:
-            if 1 < self.capacity > 4:
-                raise ValidationError(
-                    'A private lesson must have a capacity between 1 and 4'
-                )
-        if self.type != Activity.TYPE_CLINIC and self.event != None:
-            raise ValidationError(
-                f'A {self.get_type_display()} cannot be linked to an Event'
-            )
+            if not 1 <= self.capacity <= 4:
+                errors['capacity'] = ValidationError(
+                    'A private lesson must have a capacity between 1 and 4')
+
+        if self.type != Activity.TYPE_CLINIC and self.event is not None:
+            errors['type'] = ValidationError(
+                f'A {self.get_type_display()} cannot be linked to an Event')
+
+        if errors:
+            raise ValidationError(errors)
 
     def get_next_date(self):
         try:
@@ -433,6 +454,34 @@ class Date(models.Model):
 
     REQUIRED_FIELDS = ['activity', 'datetime_start',
                        'datetime_end', 'capacity', 'court']
+
+    def clean(self):
+        super().clean()
+
+        errors = {}
+
+        # Get the time from the datetime fields
+        start_time = self.datetime_start.time()
+        end_time = self.datetime_end.time()
+
+        # Check that times are on the hour or half hour
+        if start_time.minute not in [0, 30]:
+            errors['datetime_start'] = ValidationError(
+                'Start time must be on the hour or half hour')
+        if end_time.minute not in [0, 30]:
+            errors['datetime_end'] = ValidationError(
+                'End time must be on the hour or half hour')
+
+        # Check that times are between 6AM and 10PM
+        if not time(6, 0) <= start_time <= time(22, 0):
+            errors['datetime_start'] = ValidationError(
+                'Start time must be between 6:00 AM and 10:00 PM')
+        if not time(6, 0) <= end_time <= time(22, 0):
+            errors['datetime_end'] = ValidationError(
+                'End time must be between 6:00 AM and 10:00 PM')
+
+        if errors:
+            raise ValidationError(errors)
 
     def __str__(self):
         return str(self.print_date() + ' for ' + self.activity.get_title())

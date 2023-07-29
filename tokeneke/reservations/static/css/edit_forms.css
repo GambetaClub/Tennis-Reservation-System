@@ -1,0 +1,12 @@
+.form-group.error input{
+    border-color: #dc3545 !important;
+}
+
+.form-group.error input:focus{
+    border-color: #dc3545 !important;
+    box-shadow: 60px -16px #dc3545;
+}
+
+.form-error {
+    color: #dc3545
+}
