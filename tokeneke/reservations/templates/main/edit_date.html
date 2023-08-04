@@ -6,11 +6,11 @@
 
 <form method="post" class="edit-form" action="{% url 'edit_date' date.id %}">
     <div class="form-container">
-        {% csrf_token %} 
-        {{ form.media }}
+        {% csrf_token %} {{ form.media }}
         <div class="row justify-content-center">
             <div class="form-group col-md-6">
                 <a href="{% url 'edit_activity' activity.id %}">{{activity}}</a>
+                {{ form.activity.label }}
                 {{ form.activity }}
 				{% if form.activity.errors %}
 				<span class="form-error" role="alert">
@@ -44,9 +44,9 @@
                 {{ form.capacity.label }} 
                 {{ form.capacity }}
                 {% if form.capacity.errors %}
-				<span class="form-error" role="alert">
-					{{ form.capacity.errors }}
-				</span>
+                    <span class="form-error" role="alert">
+                        {{ form.capacity.errors }}
+                    </span>
 				{% endif %}
             </div>
             <div class="form-group col-md-3">

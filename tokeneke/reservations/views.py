@@ -9,10 +9,11 @@ from django.http import HttpResponseBadRequest
 from django.http import JsonResponse
 from .models import Event, Activity, Date, Participation, Court
 from datetime import date as datetimedate
+from datetime import datetime
+from .constants import DATE_LIMIT
 import json
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from .constants import *
 
 
 def create_courts():
@@ -74,12 +75,12 @@ def my_activities(request):
 @login_required
 @staff_member_required
 def edit_all_events(request):
-    all_events = Event.objects.all()
+    all_activities = Activity.objects.all()
     return render(request, 'main/home.html', {
-        'page_title': 'All Events',
-        'events': all_events,
+        'page_title': 'All Activities',
+        'activities': all_activities,
         'titles': {
-            'All Events': all_events.count(),
+            'All Events': all_activities.count(),
         }
     })
 
@@ -184,30 +185,34 @@ def edit_profile(request):
 @staff_member_required
 def edit_activity(request, activity_id):
     activity = get_object_or_404(Activity, id=activity_id)
-    old_occurrences = list(activity.recurrences.occurrences(dtend=date_limit))
+    old_occurrences = list(activity.recurrences.occurrences(dtend=DATE_LIMIT))
     form = CreateActivityForm(request.POST or None, instance=activity)
     if form.is_valid():
         new_occurrences = list(
-            form.instance.recurrences.occurrences(dtend=date_limit))
-        # If the time of the activity it's changed, then all dates should be deleted
+            form.instance.recurrences.occurrences(dtend=DATE_LIMIT))
+        # If the time of the clinic it's changed, then all dates should be deleted
         # and ask the members to sign up for the new dates.
         if form.data['start_time'] != str(activity.start_time) or \
            form.data['end_time'] != str(activity.end_time):
             for date in activity.get_fut_dates():
                 date.delete()
-            form.instance.update_date_instances()
+            try:
+                form.instance.update_date_instances()
+            except ValueError as e:
+                messages.error(request, e)
+                return redirect('home')
         # Instead, if only some dates were added or deleted,
         # then just these would be manage without deleting all
         # the future dates.
-        elif old_occurrences != new_occurrences:
-            form.instance.update_date_instances(old_occurrences)
-
-        elif form.data['capacity'] != activity.capacity:
-            form.instance.update_dates_capacity()
+        elif old_occurrences != new_occurrences or form.data['capacity'] != activity.capacity:
+            try:
+                form.instance.update_date_instances(old_occurrences)
+            except ValueError as e:
+                messages.error(request, e)
+                return redirect('home')
 
         form.save()
-        messages.success(
-            request, f"You edited the activity: {activity.title}.")
+        messages.success(request, f"You edited the clinic: {activity.title}.")
         return redirect('home')
 
     return render(request, 'main/edit_activity.html',
@@ -224,6 +229,7 @@ def edit_date(request, date_id):
     form = CreateDateForm(request.POST or None, instance=date)
     if form.is_valid():
         form.save()
+        form.instance.update_court()
         messages.success(request, f"You edited the date: {date}.")
         return redirect("home")
     participants = date.get_all_parts()

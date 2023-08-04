@@ -1,5 +1,6 @@
 {% extends 'main/base.html' %} {% block head %} {% load static %}
 <link rel="stylesheet" href="{% static 'css/edit_forms.css' %}" />
+<script src="{% static 'js/forms.js' %}"></script>
 {% endblock head %} {% block content %}
 <form
 	method="post"
@@ -9,43 +10,82 @@
 	<div class="form-container">
 		{% csrf_token %} {{ form.media }}
 		{% if activity.event %}
-		<div class="row justify-content-center">
-			<div class="form-group col-md-6">
-				{{ form.event.label }}:
-				<a href="{% url 'edit_event' event.id %}">{{event}}</a>
-				{{ form.event }}
-			</div>
-		</div>
+			<a href="{% url 'edit_event' event.id %}">{{event}}</a>
 		{% endif %}
 		<div class="row justify-content-center">
 			<div class="form-group col-md-6">
+				{{ form.event.label }} {{ form.event }}
+			</div>
+			{% if form.event.errors %}
+				<span class="form-error" role="alert">
+					{{ form.event.errors }}
+				</span>
+			{% endif %}
+		</div>
+		<div class="row justify-content-center">
+			<div class="form-group col-md-6">
 				{{ form.title.label }} {{ form.title }}
+				{% if form.title.errors %}
+					<span class="form-error" role="alert">
+						{{ form.title.errors }}
+					</span>
+				{% endif %}
 			</div>
 		</div>
 		<div class="row justify-content-center">
 			<div class="form-group col-md-6">
 				{{ form.type.label }} {{ form.type }}
+				{% if form.type.errors %}
+					<span class="form-error" role="alert">
+						{{ form.type.errors }}
+					</span>
+				{% endif %}
 			</div>
 		</div>
 		<div class="row justify-content-center">
 			<div class="form-group col-md-6">
 				{{ form.recurrences.label }} {{ form.recurrences }}
+				{% if form.recurrences.errors %}
+					<span class="form-error" role="alert">
+						{{ form.recurrences.errors }}
+					</span>
+				{% endif %}
 			</div>
 		</div>
 		<div class="row justify-content-center">
 			<div class="form-group col-md-3">
 				{{ form.start_time.label }} {{ form.start_time }}
+				{% if form.start_time.errors %}
+					<span class="form-error" role="alert">
+						{{ form.start_time.errors }}
+					</span>
+				{% endif %}
 			</div>
 			<div class="form-group col-md-3">
 				{{ form.end_time.label }} {{ form.end_time }}
+				{% if form.start_time.errors %}
+				<span class="form-error" role="alert">
+					{{ form.end_time.errors }}
+				</span>
+				{% endif %}
 			</div>
 		</div>
 		<div class="row justify-content-center">
 			<div class="form-group col-md-3">
 				{{ form.capacity.label }} {{ form.capacity }}
+				{% if form.capacity.errors %}
+					<span class="form-error" role="alert">
+						{{ form.capacity.errors }}
+					</span>
+				{% endif %}
 			</div>
 			<div class="form-group col-md-3">
 				{{ form.is_active.label }} {{ form.is_active }}
+				{% if form.is_active.errors %}
+					<span class="form-error" role="alert">
+						{{ form.is_active.errors }}
+					</span>
+				{% endif %}
 			</div>
 		</div>
 		<div class="row justify-content-center">

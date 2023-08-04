@@ -213,16 +213,14 @@ class Activity(models.Model):
     )
     event = models.ForeignKey(
         Event, on_delete=models.CASCADE, blank=True, null=True, default=None)
-    title = models.CharField(
-        'Activity Title', max_length=120, blank=True)
+    title = models.CharField('Activity Title', max_length=120, blank=True)
     recurrences = recurrence.fields.RecurrenceField(blank=True, null=True)
     start_time = models.TimeField("Start Time", blank=True, null=True)
     end_time = models.TimeField("End Time", blank=True, null=True)
     capacity = models.IntegerField("Capacity", default=4)
     is_active = models.BooleanField("Active", default=True)
 
-    REQUIRED_FIELDS = ['title', 'start_time', 'type'
-                       'end_time', 'capacity', 'is_active']
+    REQUIRED_FIELDS = '__all__'
 
     def __str__(self):
         return f"{self.get_title()} - {self.get_dates_desc()}"
@@ -266,16 +264,12 @@ class Activity(models.Model):
             raise ValidationError(errors)
 
     def get_next_date(self):
-        try:
-            next_date = Date.objects.filter(activity__id=self.id).filter(
-                datetime_start__gte=timezone.now()).order_by('datetime_start')
-            if next_date.count() > 0:
-                return next_date[0]
-            else:
-                return Date.objects.filter(
-                    activity__event__id=self.id).order_by('-datetime_start')[0]
-        except ObjectDoesNotExist as err:
-            return err
+        next_date = Date.objects.filter(
+            activity__id=self.id, datetime_start__gte=timezone.now()).order_by('datetime_start').first()
+        if next_date:
+            return next_date
+        else:
+            return Date.objects.filter(activity__id=self.id).order_by('-datetime_start').first()
 
     def is_clinic(self):
         return self.type == Activity.TYPE_CLINIC
@@ -299,21 +293,29 @@ class Activity(models.Model):
             return err
 
     def get_host(self):
-        return Participation.objects.filter(
-            date__id=self.get_next_date().id).order_by('date_registered')[0].member
+        if self.get_next_date():
+            host = Participation.objects.filter(
+                date__id=self.get_next_date().id).order_by('date_registered').first()
+            if host:
+                return host.member
+        return None
 
     def get_pro(self):
-        return self.get_next_date().get_pro()
+        if self.get_next_date():
+            return self.get_next_date().get_pro()
 
     def get_courts(self):
-        return self.get_next_date().court.all()
+        if self.get_next_date():
+            return self.get_next_date().court.all()
 
     def print_courts(self):
-        courts_names = [court.name for court in self.get_courts()]
-        return ', '.join(courts_names)
+        if self.get_courts():
+            courts_names = [court.name for court in self.get_courts()]
+            return ', '.join(courts_names)
 
     def get_formatted_duration(self):
-        return self.get_next_date().get_formatted_duration()
+        if self.get_next_date():
+            return self.get_next_date().get_formatted_duration()
 
     def get_remaining_days(self):
         # Returns a string of the remaining days for the fut Date
@@ -365,55 +367,77 @@ class Activity(models.Model):
         except:
             "No next date"
 
+    def get_open_courts(self, datetime_start, datetime_end, amount, assigned_courts=None):
+        # This returns all the courts that are not already reserved at the given time range.
+        courts = Court.objects.exclude(date__datetime_start__lt=datetime_end,
+                                       date__datetime_end__gt=datetime_start)
+
+        if assigned_courts:
+            courts = courts.exclude(
+                id__in=[court.id for court in assigned_courts])
+
+        # Check if the number of available courts is less than the required amount
+        if courts.count() < amount:
+            return None
+        else:
+            return courts[:amount]
+
     def update_date_instances(self, old_occurrences=None, limit=30):
         """
-        Creates/deletes dates based on the recurrence field. 
+        Creates/deletes dates and adjusts courts based on the recurrence field and capacity. 
         It accepts a list with the old occurrences in order to compare
-        if there are dates that should be deleted. It only deletes future
+        if there are dates that should be deleted or adjusted. It only deletes or adjusts future
         dates.
         """
         # It will only create future dates
         yesterday = datetime.today() - timedelta(days=1)
         to_create = list(self.recurrences.between(
-            yesterday, date_limit))[:limit]
-        dates_instances = []
-
+            yesterday, DATE_LIMIT))[:limit]
         # Checks if old_occurrences has been passed as an argument.
         if old_occurrences:
             # Based on the sets, to_create only has the dates that have been added.
             to_create = list(set(to_create) - set(old_occurrences))[:limit]
+
             # Based on the sets, to_delete only has the dates that have been removed.
             to_delete = list(set(old_occurrences) -
-                             set(self.recurrences.between(yesterday, date_limit)))
-
+                             set(self.recurrences.between(yesterday, DATE_LIMIT)))
             for date in to_delete:
                 datetime_start = make_date_aware(date.replace(
                     hour=self.start_time.hour, minute=self.start_time.minute, second=0, microsecond=0))
-                date = self.get_date_by_datetime(datetime_start)
-                if date:
-                    date.delete()
+                date_instance = self.get_date_by_datetime(datetime_start)
+                if date_instance:
+                    date_instance.delete()
 
-        # For creating the dates
+            # For updating the dates' capacity and courts
+            for old_date in old_occurrences:
+                datetime_start = make_date_aware(old_date.replace(
+                    hour=self.start_time.hour, minute=self.start_time.minute, second=0, microsecond=0))
+                date_instance = self.get_date_by_datetime(datetime_start)
+
+                if date_instance:
+                    try:
+                        date_instance.capacity = self.capacity
+                        date_instance.update_court()  # Here we update the courts of the date
+                        date_instance.save()
+                    except ValueError as e:
+                        raise ValueError(
+                            f"Error updating courts for date: {e}")
+
+        # For creating the new dates
         for date in to_create:
+            print('Creating date: ', date)
             datetime_start = make_date_aware(date.replace(
                 hour=self.start_time.hour, minute=self.start_time.minute, second=0, microsecond=0))
             datetime_end = make_date_aware(date.replace(
                 hour=self.end_time.hour, minute=self.end_time.minute, second=0, microsecond=0))
-            date = Date(activity=self, datetime_start=datetime_start,
-                        datetime_end=datetime_end, capacity=self.capacity)
-            dates_instances.append(date)
-
-        Date.objects.bulk_create(dates_instances)
-
-    def update_dates_capacity(self):
-        """
-        Updates the capacity of all the Date instances
-        that are will happen in the future
-        """
-        dates = self.get_fut_dates()
-        for date in dates:
-            date.capacity = self.capacity
-            date.save()
+            # Only create the Date if there are enough courts
+            date_instance = Date(activity=self, datetime_start=datetime_start,
+                                 datetime_end=datetime_end, capacity=self.capacity)
+            date_instance.save()  # Save the Date instance first before adding courts
+            try:
+                date_instance.update_court()  # Here we add the courts to the date
+            except ValueError as e:
+                raise ValueError(f"Error creating courts for date: {e}")
 
 
 class Court(models.Model):
@@ -444,8 +468,10 @@ class Court(models.Model):
 
 
 class Date(models.Model):
-    activity = models.ForeignKey(Activity, on_delete=models.CASCADE)
-    datetime_start = models.DateTimeField(blank=False, null=False)
+    activity = models.ForeignKey(
+        Activity, on_delete=models.CASCADE)
+    datetime_start = models.DateTimeField(
+        blank=False, null=False, validators=[])
     datetime_end = models.DateTimeField(blank=False, null=False)
     participants = models.ManyToManyField(
         Member, through='Participation', blank=True)
@@ -488,6 +514,26 @@ class Date(models.Model):
 
     def __hash__(self):
         return hash((self.datetime_start,))
+
+    def update_court(self):
+        old_courts_needed = self.court.count()
+        new_courts_needed = (self.capacity - 1) // 4 + 1
+
+        if new_courts_needed > old_courts_needed:
+            courts_needed = new_courts_needed - old_courts_needed
+            courts_used = list(self.court.all())
+            open_courts = self.activity.get_open_courts(
+                self.datetime_start, self.datetime_end, courts_needed, courts_used)
+            if open_courts is None:
+                raise ValueError(
+                    f"Could not find {courts_needed} open courts")
+            else:
+                for court in open_courts:
+                    self.court.add(court)
+        elif new_courts_needed < old_courts_needed:
+            courts_to_remove = old_courts_needed - new_courts_needed
+            for court in list(self.court.all().order_by('-id'))[:courts_to_remove]:
+                self.court.remove(court)
 
     def print_date(self):
         return self.get_datetime_start().strftime('%A, %b %-d - %I:%M%p')
@@ -587,6 +633,16 @@ class Participation(models.Model):
 
     REQUIRED_FIELDS = ['member', 'date']
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['member', 'date'], name='member_can_sign_in_once'
+            )
+        ]
+
+    def __str__(self):
+        return str(self.member) + " for " + str(self.date)
+
     def save(self, *args, **kwargs):
         if self.date.get_activity().is_clinic():
             event = Event.objects.get(activity__date__id=self.date.id)
@@ -597,13 +653,6 @@ class Participation(models.Model):
                 super().save(*args, **kwargs)
         else:
             super().save(*args, **kwargs)
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['member', 'date'], name='member_can_sign_in_once'
-            )
-        ]
 
     def get_activity(self):
         try:
@@ -626,6 +675,3 @@ class Participation(models.Model):
             return self.get_event()
         else:
             return self.get_activity()
-
-    def __str__(self):
-        return str(self.member) + " for " + str(self.date)
