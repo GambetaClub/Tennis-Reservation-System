@@ -37,16 +37,20 @@
 		</div>
 	</form>
 	<div class="row justify-content-center">
+	{% if activities %}
+		Activities:
 		{% for activity in activities %}
-			Activity:   <a href="{% url 'edit_activity' activity.id %}">{{activity}}</a>
+			<a href="{% url 'edit_activity' activity.id %}">{{activity}}</a>
 			{% if activity.is_active %}
 				<i class="bx bx-check-circle"></i>
 			{% else %}
 				<i class="bx bxs-no-entry"></i>
-			{% endif %}
-			{% empty %}
-			No activities
+			{% endif %}	
+			
 		{% endfor %}
+	{% else %}
+		No activities
+	{% endif %}
 	</div>
 
 {% endblock content %}

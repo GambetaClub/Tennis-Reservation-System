@@ -10,7 +10,11 @@
 	<div class="form-container">
 		{% csrf_token %} {{ form.media }}
 		{% if activity.event %}
-			<a href="{% url 'edit_event' event.id %}">{{event}}</a>
+		<div class="row justify-content-center">
+			<div class="form-group col-md-6">
+				Current Event: <br> <a href="{% url 'edit_event' event.id %}">{{event}}</a>
+			</div>
+		</div>
 		{% endif %}
 		<div class="row justify-content-center">
 			<div class="form-group col-md-6">

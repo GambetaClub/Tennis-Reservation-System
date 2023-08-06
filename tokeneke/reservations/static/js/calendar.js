@@ -1,14 +1,14 @@
 const capitalize = (word) => `${word.charAt(0).toUpperCase()}${word.slice(1)}`
 
 document.addEventListener('DOMContentLoaded', function () {
+	const cellHeight = document.querySelector('.schedule-cell').offsetHeight
 	dates.forEach(function (date) {
 		date.court.forEach(function (court) {
-			console.log(court)
 			var reservationContainer = document.createElement('div')
 			reservationContainer.className = 'reservation-container'
 			var reservationContent = document.createElement('div')
 			reservationContent.className = 'reservation-content'
-			reservationContent.style.height = date.duration * 100 + '%'
+			reservationContent.style.height = date.duration * cellHeight + 'px'
 			var block = document.createElement('div')
 			block.className = 'block'
 			block.innerHTML =
@@ -23,7 +23,6 @@ document.addEventListener('DOMContentLoaded', function () {
 			// Convert time to index for positioning.
 			var timeIndex = (startTime.getHours() - 6) * 2
 			if (startTime.getMinutes() >= 30) timeIndex += 1
-
 			// Insert activity into the correct court and time slot
 			var courtElement = document.getElementById(court)
 			var timeSlotElement = courtElement.children[timeIndex]

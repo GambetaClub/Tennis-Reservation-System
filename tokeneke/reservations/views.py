@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponseBadRequest
+from django.core.exceptions import ValidationError
 from django.http import JsonResponse
 from .models import Event, Activity, Date, Participation, Court
 from datetime import date as datetimedate
@@ -141,18 +142,22 @@ def create_event(request):
 def create_activity(request):
     if not request.user.is_staff:
         messages.info(
-            request, f"You can't create an event since you are not a staff member.")
+            request, f"You can't create an activity since you are not a staff member.")
         return redirect("home")
     form = CreateActivityForm()
     if request.method == "POST":
         form = CreateActivityForm(request.POST)
         if form.is_valid():
-            form.save()
-            form.instance.update_date_instances()
-            messages.success(request, 'You created the activity successfully.')
-            return redirect("home")
-        else:
-            return HttpResponseBadRequest("Something happened")
+            activity = form.save(commit=False)
+            try:
+                activity.full_clean()
+                activity.save()
+                activity.update_date_instances()
+                messages.success(
+                    request, 'You created the activity successfully.')
+                return redirect('home')
+            except ValidationError as e:
+                form.add_error(None, e)
     return render(request, 'main/create_activity.html', {'form': form})
 
 
@@ -185,41 +190,23 @@ def edit_profile(request):
 @staff_member_required
 def edit_activity(request, activity_id):
     activity = get_object_or_404(Activity, id=activity_id)
-    old_occurrences = list(activity.recurrences.occurrences(dtend=DATE_LIMIT))
     form = CreateActivityForm(request.POST or None, instance=activity)
+    old_occur = list(activity.recurrences.occurrences(dtend=DATE_LIMIT))
     if form.is_valid():
-        new_occurrences = list(
-            form.instance.recurrences.occurrences(dtend=DATE_LIMIT))
-        # If the time of the clinic it's changed, then all dates should be deleted
-        # and ask the members to sign up for the new dates.
-        if form.data['start_time'] != str(activity.start_time) or \
-           form.data['end_time'] != str(activity.end_time):
-            for date in activity.get_fut_dates():
-                date.delete()
-            try:
-                form.instance.update_date_instances()
-            except ValueError as e:
-                messages.error(request, e)
-                return redirect('home')
-        # Instead, if only some dates were added or deleted,
-        # then just these would be manage without deleting all
-        # the future dates.
-        elif old_occurrences != new_occurrences or form.data['capacity'] != activity.capacity:
-            try:
-                form.instance.update_date_instances(old_occurrences)
-            except ValueError as e:
-                messages.error(request, e)
-                return redirect('home')
+        try:
+            activity.update_activity_and_dates(form, old_occur)
+            messages.success(
+                request, f"You edited the activity: {activity.title}.")
+            return redirect('home')
+        except ValueError as e:
+            messages.error(request, e)
 
-        form.save()
-        messages.success(request, f"You edited the clinic: {activity.title}.")
-        return redirect('home')
-
-    return render(request, 'main/edit_activity.html',
-                  {'event': activity.event,
-                   'activity': activity,
-                   'dates': activity.get_all_dates(),
-                   'form': form})
+    return render(request, 'main/edit_activity.html', {
+        'event': activity.event,
+        'activity': activity,
+        'dates': activity.get_all_dates(),
+        'form': form
+    })
 
 
 @login_required
@@ -264,6 +251,72 @@ def event_participants(request, event_id):
         'event': event,
         'on_court': next_date.get_parts_on_court(),
         'on_wait': on_wait})
+
+
+def add_participant(request):
+    if request.method == 'POST':
+        form = AddParticipantForm(request.POST)
+        if form.is_valid():
+            event = get_object_or_404(Event, id=form.cleaned_data['event_id'])
+            dates = json.loads(form.cleaned_data['dates'])
+            if dates:
+                handle_dates(request, event, dates)
+            else:
+                handle_no_dates(request, event)
+        else:
+            return HttpResponseBadRequest("Invalid form data")
+    else:
+        return HttpResponseBadRequest("Not a post")
+
+
+def handle_dates(request, event, dates):
+    # Check the event's gender and they user can sign up for it
+    if event.gender != 'MIXED' and event.gender != request.user.gender:
+        return JsonResponse({'message': f"You can't sign up for an event for {event.get_gender_display()}s."}, status=403)
+
+    # Getting the dates the user already sign up for
+    old_reg_dates_ids = list(Date.objects.filter(participation__member=request.user).filter(
+        activity__event=event).values_list('id', flat=True))
+    # Assuming that the current selection of dates is the newest one. Since 'dates' contains
+    # the dates the user already registered for and the new ones, if any.
+    new_reg_dates_ids = [int(id) for id in dates]
+
+    # The common subset of the old dates registered and the new ones
+    # is the one containing the dates to be deleted or created.
+    reg_dates = list(set(old_reg_dates_ids).symmetric_difference(
+        set(new_reg_dates_ids)))
+
+    for date_id in reg_dates:
+        selected_date = Date.objects.get(id=date_id)
+        try:
+            # If the participation exists in the DB, then it gets deleted.
+            Participation.objects.get(
+                member=request.user, date=selected_date).delete()
+        except Participation.DoesNotExist:
+            # Otherwise, it gets created.
+            part = Participation.objects.create(
+                member=request.user, date=selected_date)
+            part.save()
+    return JsonResponse({'message': "You have successfully registered for the selected dates."})
+    # If the the user didn't select any dates it means that they either unregistered
+    # from all dates or they just forgot to register for any.
+
+
+def handle_no_dates(request, event):
+    old_reg_dates_ids = list(Date.objects.filter(participation__member=request.user).filter(
+        activity__event=event).values_list('id', flat=True))
+    # If the user was already registered for some dates and now
+    # there are no selected dates. It means that he wants so sign out for all of them.
+    if old_reg_dates_ids:
+        # Then, it deletes all the user's participations for this event.
+        for date_id in old_reg_dates_ids:
+            unselected_date = Date.objects.get(id=date_id)
+            Participation.objects.get(
+                member=request.user, date=unselected_date).delete()
+        return JsonResponse({'message': "You have successfully unregistered for all the dates."})
+    # Otherwise, it prompts a message saying they didn't select any date.
+    else:
+        return JsonResponse({'message': "You haven't selected any date."}, status=500)
 
 
 @login_required
@@ -374,5 +427,5 @@ def calendar_view(request, date):
         dates_list.append(date_dict)
 
     dates_json = json.dumps(dates_list)
-
+    print(dates_json)
     return render(request, 'main/calendar.html', {'dates': dates_json})

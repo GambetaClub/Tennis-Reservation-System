@@ -1,7 +1,10 @@
-{% extends 'main/base.html' %} {% block head %} {% load static %}
-<link rel="stylesheet" href="{% static 'css/edit_forms.css' %}" />
-<script src="{% static 'js/forms.js' %}"></script>
-{% endblock head %} {% block content %}
+{% extends 'main/base.html' %}
+{% block head %} 
+{% load static %}
+    <link rel="stylesheet" href="{% static 'css/edit_forms.css' %}" />
+    <script src="{% static 'js/forms.js' %}"></script>
+{% endblock head %}
+{% block content %}
 
 
 <form method="post" class="edit-form" action="{% url 'edit_date' date.id %}">
@@ -9,7 +12,7 @@
         {% csrf_token %} {{ form.media }}
         <div class="row justify-content-center">
             <div class="form-group col-md-6">
-                <a href="{% url 'edit_activity' activity.id %}">{{activity}}</a>
+                Current Activity: <a href="{% url 'edit_activity' activity.id %}">{{activity}}</a> <br>
                 {{ form.activity.label }}
                 {{ form.activity }}
 				{% if form.activity.errors %}

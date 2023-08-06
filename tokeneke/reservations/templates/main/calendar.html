@@ -1,7 +1,7 @@
 {% extends 'main/base.html' %} {% block head %} {% load static %}
 <link rel="stylesheet" href="{% static 'css/calendar.css' %}" />
 <script>
-	var dates = JSON.parse('{{ dates | safe }}')
+	var dates = JSON.parse(`{{ dates | safe }}`)
 </script>
 {% endblock %} {% block content %}
 <div class="panel">

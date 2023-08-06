@@ -3,8 +3,10 @@ from django.core.exceptions import ObjectDoesNotExist
 from .validators import validate_percentage
 from django.utils.translation import gettext_lazy as _
 import recurrence.fields
+from django.db.models import Q
 from django.utils.timezone import make_aware
 from django.utils import timezone
+import math
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from datetime import datetime, timedelta, time
 from django.core.exceptions import ValidationError
@@ -217,10 +219,11 @@ class Activity(models.Model):
     recurrences = recurrence.fields.RecurrenceField(blank=True, null=True)
     start_time = models.TimeField("Start Time", blank=True, null=True)
     end_time = models.TimeField("End Time", blank=True, null=True)
-    capacity = models.IntegerField("Capacity", default=4)
+    capacity = models.IntegerField("Capacity", default=MAX_P_P_COURT)
     is_active = models.BooleanField("Active", default=True)
 
-    REQUIRED_FIELDS = '__all__'
+    REQUIRED_FIELDS = ['type', 'title', 'recurrences',
+                       'start_time', 'end_time', 'capacity', 'is_active']
 
     def __str__(self):
         return f"{self.get_title()} - {self.get_dates_desc()}"
@@ -247,14 +250,20 @@ class Activity(models.Model):
                 errors['end_time'] = ValidationError(
                     'End time must be between 6:00 AM and 10:00 PM')
 
+            if self.start_time and self.end_time and self.start_time >= self.end_time:
+                errors['start_time'] = ValidationError(
+                    "End time must be after start time.")
+                errors['end_time'] = ValidationError(
+                    "End time must be after start time.")
+
         if self.type == Activity.TYPE_CLINIC and not self.event:
             errors['type'] = ValidationError(
                 f'A {self.get_type_display()} must be linked to an Event')
 
         if self.type == Activity.TYPE_PRIVATE:
-            if not 1 <= self.capacity <= 4:
+            if not 1 <= self.capacity <= MAX_P_P_COURT:
                 errors['capacity'] = ValidationError(
-                    'A private lesson must have a capacity between 1 and 4')
+                    f'A private lesson must have a capacity between 1 and {MAX_P_P_COURT}')
 
         if self.type != Activity.TYPE_CLINIC and self.event is not None:
             errors['type'] = ValidationError(
@@ -271,6 +280,9 @@ class Activity(models.Model):
         else:
             return Date.objects.filter(activity__id=self.id).order_by('-datetime_start').first()
 
+    def get_formatted_date(self, date, hour, minute):
+        return make_date_aware(date.replace(hour=hour, minute=minute, second=0, microsecond=0))
+
     def is_clinic(self):
         return self.type == Activity.TYPE_CLINIC
 
@@ -283,14 +295,24 @@ class Activity(models.Model):
     def get_all_dates(self):
         return Date.objects.filter(activity__id=self.id).order_by('datetime_start')
 
-    def get_fut_dates(self, number=40):
+    def get_fut_dates(self, number=MAX_DATES):
         # Returns a query list with the "number" amount of future Date instances of the activity
-        try:
-            fut_dates = Date.objects.filter(activity__id=self.id).filter(
-                datetime_start__gte=timezone.now()).order_by('datetime_start')[:number]
-            return fut_dates
-        except ObjectDoesNotExist as err:
-            return err
+        fut_dates = Date.objects.filter(
+            activity__id=self.id, datetime_start__gte=timezone.now()).order_by('datetime_start')[:number]
+
+        if not fut_dates:
+            # Handle the case where no future dates are found
+            return None
+
+        return fut_dates
+
+    def delete_future_dates(self):
+        """
+        Deletes all future dates associated with this activity.
+        """
+        future_dates = Date.objects.filter(
+            activity=self, datetime_start__gte=timezone.now())
+        future_dates.delete()
 
     def get_host(self):
         if self.get_next_date():
@@ -359,30 +381,35 @@ class Activity(models.Model):
         try:
             return self.get_next_date().print_date()
         except:
-            return "No date"
+            return "No next date"
 
     def get_participants(self):
         try:
             return self.get_next_date().get_all_parts()
         except:
-            "No next date"
+            return "No next date"
 
     def get_open_courts(self, datetime_start, datetime_end, amount, assigned_courts=None):
         # This returns all the courts that are not already reserved at the given time range.
-        courts = Court.objects.exclude(date__datetime_start__lt=datetime_end,
-                                       date__datetime_end__gt=datetime_start)
+        courts = Court.objects.filter(
+            ~Q(date__datetime_start__lt=datetime_end,
+               date__datetime_end__gt=datetime_start)
+        )
 
         if assigned_courts:
-            courts = courts.exclude(
-                id__in=[court.id for court in assigned_courts])
+            assigned_court_ids = [court.id for court in assigned_courts]
+            courts = courts.exclude(id__in=assigned_court_ids)
+
+        # Convert queryset to list
+        courts = list(courts)
 
         # Check if the number of available courts is less than the required amount
-        if courts.count() < amount:
+        if len(courts) < amount:
             return None
         else:
             return courts[:amount]
 
-    def update_date_instances(self, old_occurrences=None, limit=30):
+    def update_date_instances(self, old_occurrences=None, limit=MAX_DATES):
         """
         Creates/deletes dates and adjusts courts based on the recurrence field and capacity. 
         It accepts a list with the old occurrences in order to compare
@@ -397,21 +424,20 @@ class Activity(models.Model):
         if old_occurrences:
             # Based on the sets, to_create only has the dates that have been added.
             to_create = list(set(to_create) - set(old_occurrences))[:limit]
-
             # Based on the sets, to_delete only has the dates that have been removed.
             to_delete = list(set(old_occurrences) -
                              set(self.recurrences.between(yesterday, DATE_LIMIT)))
             for date in to_delete:
-                datetime_start = make_date_aware(date.replace(
-                    hour=self.start_time.hour, minute=self.start_time.minute, second=0, microsecond=0))
+                datetime_start = self.get_formatted_date(
+                    date, self.start_time.hour, self.start_time.minute)
                 date_instance = self.get_date_by_datetime(datetime_start)
                 if date_instance:
                     date_instance.delete()
 
             # For updating the dates' capacity and courts
             for old_date in old_occurrences:
-                datetime_start = make_date_aware(old_date.replace(
-                    hour=self.start_time.hour, minute=self.start_time.minute, second=0, microsecond=0))
+                datetime_start = self.get_formatted_date(
+                    old_date, self.start_time.hour, self.start_time.minute)
                 date_instance = self.get_date_by_datetime(datetime_start)
 
                 if date_instance:
@@ -419,25 +445,38 @@ class Activity(models.Model):
                         date_instance.capacity = self.capacity
                         date_instance.update_court()  # Here we update the courts of the date
                         date_instance.save()
-                    except ValueError as e:
+                    except ValueError as ve:
                         raise ValueError(
-                            f"Error updating courts for date: {e}")
+                            f"Error updating the courts: {ve}")
 
-        # For creating the new dates
+        # For creating brand new dates
+        courts = Court.objects.all()
         for date in to_create:
-            print('Creating date: ', date)
-            datetime_start = make_date_aware(date.replace(
-                hour=self.start_time.hour, minute=self.start_time.minute, second=0, microsecond=0))
-            datetime_end = make_date_aware(date.replace(
-                hour=self.end_time.hour, minute=self.end_time.minute, second=0, microsecond=0))
-            # Only create the Date if there are enough courts
-            date_instance = Date(activity=self, datetime_start=datetime_start,
-                                 datetime_end=datetime_end, capacity=self.capacity)
-            date_instance.save()  # Save the Date instance first before adding courts
-            try:
+            datetime_start = self.get_formatted_date(
+                date, self.start_time.hour, self.start_time.minute)
+            datetime_end = self.get_formatted_date(
+                date, self.end_time.hour, self.end_time.minute)
+            if Date.objects.can_create_date(datetime_start=datetime_start,
+                                            datetime_end=datetime_end, capacity=self.capacity,
+                                            courts=courts):
+                date_instance = Date.objects.create(activity=self, datetime_start=datetime_start,
+                                                    datetime_end=datetime_end, capacity=self.capacity)
                 date_instance.update_court()  # Here we add the courts to the date
-            except ValueError as e:
-                raise ValueError(f"Error creating courts for date: {e}")
+            else:
+                raise ValueError(f"Error creating courts for date: {date}")
+
+    def update_activity_and_dates(self, form, old_occur):
+        old_occur = list(self.recurrences.occurrences(dtend=DATE_LIMIT))
+        new_occur = list(
+            form.instance.recurrences.occurrences(dtend=DATE_LIMIT))
+
+        if form.cleaned_data['start_time'] != str(self.start_time) or \
+           form.cleaned_data['end_time'] != str(self.end_time):
+            self.delete_future_dates()
+            self.update_date_instances()
+        elif old_occur != new_occur or form.cleaned_data['capacity'] != self.capacity:
+            self.update_date_instances(old_occur)
+        form.save()
 
 
 class Court(models.Model):
@@ -466,6 +505,30 @@ class Court(models.Model):
     def __str__(self):
         return self.name
 
+    def is_occupied(self, start_time, end_time):
+        return Date.objects.filter(
+            court=self,
+            datetime_start__lt=end_time,
+            datetime_end__gt=start_time
+        ).exists()
+
+
+class DateManager(models.Manager):
+    def can_create_date(self, datetime_start, datetime_end, capacity, courts):
+        num_courts = len(courts)
+        # Maximum number of people that one court can handle.
+        max_people_per_court = MAX_P_P_COURT
+        num_courts_needed = math.ceil(capacity / max_people_per_court)
+
+        if num_courts < num_courts_needed:
+            return False
+
+        for court in courts:
+            if court.is_occupied(datetime_start, datetime_end):
+                return False
+
+        return True
+
 
 class Date(models.Model):
     activity = models.ForeignKey(
@@ -475,8 +538,9 @@ class Date(models.Model):
     datetime_end = models.DateTimeField(blank=False, null=False)
     participants = models.ManyToManyField(
         Member, through='Participation', blank=True)
-    capacity = models.IntegerField("Capacity", default=12)
+    capacity = models.IntegerField("Capacity", default=MAX_P_P_COURT)
     court = models.ManyToManyField(Court)
+    objects = DateManager()
 
     REQUIRED_FIELDS = ['activity', 'datetime_start',
                        'datetime_end', 'capacity', 'court']
@@ -517,7 +581,7 @@ class Date(models.Model):
 
     def update_court(self):
         old_courts_needed = self.court.count()
-        new_courts_needed = (self.capacity - 1) // 4 + 1
+        new_courts_needed = (self.capacity - 1) // MAX_P_P_COURT + 1
 
         if new_courts_needed > old_courts_needed:
             courts_needed = new_courts_needed - old_courts_needed

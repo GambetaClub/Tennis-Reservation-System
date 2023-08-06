@@ -1,5 +1,7 @@
 # Todo
-
+* I need to fix the DateManager: The can create manager doesn't take into account the courts
+that are already been used. it needs to find open courts. If not, then and only then throw an
+error.
 * Implement a function that assigns a court open to a specific Date:  DONE
 * Fix the edit_activity because now it doesn't handle existing dates.
 * Format all the forms in the way edit_date.html does.
