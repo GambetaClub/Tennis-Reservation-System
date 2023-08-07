@@ -200,6 +200,40 @@ class Event(models.Model):
             return None
 
 
+class Court(models.Model):
+    STADIUM_COURT = 'Stadium Court'
+    COURT_1 = 'Court 1'
+    COURT_2 = 'Court 2'
+    COURT_3 = 'Court 3'
+    COURT_4 = 'Court 4'
+    COURT_5 = 'Court 5'
+    COURT_6 = 'Court 6'
+    COURT_7 = 'Court 7'
+
+    COURT_CHOICES = (
+        (STADIUM_COURT, 'Stadium Court'),
+        (COURT_1, 'Court 1'),
+        (COURT_2, 'Court 2'),
+        (COURT_3, 'Court 3'),
+        (COURT_4, 'Court 4'),
+        (COURT_5, 'Court 5'),
+        (COURT_6, 'Court 6'),
+        (COURT_7, 'Court 7'),
+    )
+
+    name = models.CharField(max_length=20, choices=COURT_CHOICES, unique=True)
+
+    def __str__(self):
+        return self.name
+
+    def is_occupied(self, start_time, end_time):
+        return Date.objects.filter(
+            court=self,
+            datetime_start__lt=end_time,
+            datetime_end__gt=start_time
+        ).exists()
+
+
 class Activity(models.Model):
     TYPE_PRIVATE = 'private'
     TYPE_COURT = 'court'
@@ -389,7 +423,7 @@ class Activity(models.Model):
         except:
             return "No next date"
 
-    def get_open_courts(self, datetime_start, datetime_end, amount, assigned_courts=None):
+    def get_open_courts(self, datetime_start, datetime_end, num_courts_needed, assigned_courts=None):
         # This returns all the courts that are not already reserved at the given time range.
         courts = Court.objects.filter(
             ~Q(date__datetime_start__lt=datetime_end,
@@ -404,12 +438,12 @@ class Activity(models.Model):
         courts = list(courts)
 
         # Check if the number of available courts is less than the required amount
-        if len(courts) < amount:
+        if len(courts) < num_courts_needed:
             return None
         else:
-            return courts[:amount]
+            return courts[:num_courts_needed]
 
-    def update_date_instances(self, old_occurrences=None, limit=MAX_DATES):
+    def update_date_instances(self, old_occurrences=None, limit=MAX_DATES) -> None:
         """
         Creates/deletes dates and adjusts courts based on the recurrence field and capacity. 
         It accepts a list with the old occurrences in order to compare
@@ -450,22 +484,26 @@ class Activity(models.Model):
                             f"Error updating the courts: {ve}")
 
         # For creating brand new dates
-        courts = Court.objects.all()
+        num_courts_needed = math.ceil(self.capacity / MAX_P_P_COURT)
         for date in to_create:
             datetime_start = self.get_formatted_date(
                 date, self.start_time.hour, self.start_time.minute)
             datetime_end = self.get_formatted_date(
                 date, self.end_time.hour, self.end_time.minute)
+            open_courts = self.get_open_courts(
+                datetime_start, datetime_end, num_courts_needed)
             if Date.objects.can_create_date(datetime_start=datetime_start,
-                                            datetime_end=datetime_end, capacity=self.capacity,
-                                            courts=courts):
+                                            datetime_end=datetime_end,
+                                            num_courts_needed=num_courts_needed,
+                                            courts=open_courts):
                 date_instance = Date.objects.create(activity=self, datetime_start=datetime_start,
                                                     datetime_end=datetime_end, capacity=self.capacity)
                 date_instance.update_court()  # Here we add the courts to the date
             else:
-                raise ValueError(f"Error creating courts for date: {date}")
+                raise ValueError(
+                    f"Error creating courts for date: {date}. There are not enough courts for the Activity's capacity.")
 
-    def update_activity_and_dates(self, form, old_occur):
+    def update_activity_and_dates(self, form, old_occur) -> None:
         old_occur = list(self.recurrences.occurrences(dtend=DATE_LIMIT))
         new_occur = list(
             form.instance.recurrences.occurrences(dtend=DATE_LIMIT))
@@ -479,46 +517,12 @@ class Activity(models.Model):
         form.save()
 
 
-class Court(models.Model):
-    STADIUM_COURT = 'Stadium Court'
-    COURT_1 = 'Court 1'
-    COURT_2 = 'Court 2'
-    COURT_3 = 'Court 3'
-    COURT_4 = 'Court 4'
-    COURT_5 = 'Court 5'
-    COURT_6 = 'Court 6'
-    COURT_7 = 'Court 7'
-
-    COURT_CHOICES = (
-        (STADIUM_COURT, 'Stadium Court'),
-        (COURT_1, 'Court 1'),
-        (COURT_2, 'Court 2'),
-        (COURT_3, 'Court 3'),
-        (COURT_4, 'Court 4'),
-        (COURT_5, 'Court 5'),
-        (COURT_6, 'Court 6'),
-        (COURT_7, 'Court 7'),
-    )
-
-    name = models.CharField(max_length=20, choices=COURT_CHOICES, unique=True)
-
-    def __str__(self):
-        return self.name
-
-    def is_occupied(self, start_time, end_time):
-        return Date.objects.filter(
-            court=self,
-            datetime_start__lt=end_time,
-            datetime_end__gt=start_time
-        ).exists()
-
-
 class DateManager(models.Manager):
-    def can_create_date(self, datetime_start, datetime_end, capacity, courts):
-        num_courts = len(courts)
-        # Maximum number of people that one court can handle.
-        max_people_per_court = MAX_P_P_COURT
-        num_courts_needed = math.ceil(capacity / max_people_per_court)
+    def can_create_date(self, datetime_start, datetime_end, num_courts_needed, courts):
+        if courts:
+            num_courts = len(courts)
+        else:
+            return False
 
         if num_courts < num_courts_needed:
             return False

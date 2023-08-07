@@ -427,5 +427,4 @@ def calendar_view(request, date):
         dates_list.append(date_dict)
 
     dates_json = json.dumps(dates_list)
-    print(dates_json)
     return render(request, 'main/calendar.html', {'dates': dates_json})
