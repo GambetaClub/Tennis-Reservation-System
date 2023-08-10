@@ -289,6 +289,9 @@ class Activity(models.Model):
                     "End time must be after start time.")
                 errors['end_time'] = ValidationError(
                     "End time must be after start time.")
+        if self.capacity < 1:
+            errors['capacity'] = ValidationError(
+                f'The capacity must be greater than 0')
 
         if self.type == Activity.TYPE_CLINIC and not self.event:
             errors['type'] = ValidationError(
@@ -475,13 +478,14 @@ class Activity(models.Model):
                 date_instance = self.get_date_by_datetime(datetime_start)
 
                 if date_instance:
-                    try:
-                        date_instance.capacity = self.capacity
-                        date_instance.update_court()  # Here we update the courts of the date
-                        date_instance.save()
-                    except ValueError as ve:
-                        raise ValueError(
-                            f"Error updating the courts: {ve}")
+                    if date_instance.capacity != self.capacity:
+                        try:
+                            date_instance.capacity = self.capacity
+                            date_instance.update_court()  # Here we update the courts of the date
+                            date_instance.save()
+                        except ValueError as ve:
+                            raise ValueError(
+                                f"Error updating the courts: {ve}")
 
         # For creating brand new dates
         num_courts_needed = math.ceil(self.capacity / MAX_P_P_COURT)
@@ -503,16 +507,16 @@ class Activity(models.Model):
                 raise ValueError(
                     f"Error creating courts for date: {date}. There are not enough courts for the Activity's capacity.")
 
-    def update_activity_and_dates(self, form, old_occur) -> None:
-        old_occur = list(self.recurrences.occurrences(dtend=DATE_LIMIT))
+    def update_activity_and_dates(self, form, old_activity) -> None:
+        old_occur = list(
+            old_activity.recurrences.occurrences(dtend=DATE_LIMIT))
         new_occur = list(
-            form.instance.recurrences.occurrences(dtend=DATE_LIMIT))
-
-        if form.cleaned_data['start_time'] != str(self.start_time) or \
-           form.cleaned_data['end_time'] != str(self.end_time):
+            self.recurrences.occurrences(dtend=DATE_LIMIT))
+        if str(old_activity.start_time) != str(self.start_time) or \
+           str(old_activity.end_time) != str(self.end_time):
             self.delete_future_dates()
             self.update_date_instances()
-        elif old_occur != new_occur or form.cleaned_data['capacity'] != self.capacity:
+        elif old_occur != new_occur or old_activity.capacity != self.capacity:
             self.update_date_instances(old_occur)
         form.save()
 
@@ -584,12 +588,14 @@ class Date(models.Model):
         return hash((self.datetime_start,))
 
     def update_court(self):
-        old_courts_needed = self.court.count()
+        courts_used = self.court.all()
         new_courts_needed = (self.capacity - 1) // MAX_P_P_COURT + 1
-
+        if not courts_used:
+            old_courts_needed = 0
+        else:
+            old_courts_needed = len(courts_used)
         if new_courts_needed > old_courts_needed:
             courts_needed = new_courts_needed - old_courts_needed
-            courts_used = list(self.court.all())
             open_courts = self.activity.get_open_courts(
                 self.datetime_start, self.datetime_end, courts_needed, courts_used)
             if open_courts is None:

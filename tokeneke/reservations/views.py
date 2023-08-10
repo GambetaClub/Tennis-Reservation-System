@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.shortcuts import get_object_or_404
+import copy
 from django.http import HttpResponseBadRequest
 from django.core.exceptions import ValidationError
 from django.http import JsonResponse
@@ -190,11 +191,12 @@ def edit_profile(request):
 @staff_member_required
 def edit_activity(request, activity_id):
     activity = get_object_or_404(Activity, id=activity_id)
+    old_activity = copy.copy(activity)
     form = CreateActivityForm(request.POST or None, instance=activity)
-    old_occur = list(activity.recurrences.occurrences(dtend=DATE_LIMIT))
     if form.is_valid():
         try:
-            activity.update_activity_and_dates(form, old_occur)
+            form.full_clean()
+            activity.update_activity_and_dates(form, old_activity)
             messages.success(
                 request, f"You edited the activity: {activity.title}.")
             return redirect('home')
