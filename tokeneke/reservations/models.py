@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.core.exceptions import ObjectDoesNotExist
 from .validators import validate_percentage
 from django.utils.translation import gettext_lazy as _
@@ -71,7 +71,7 @@ class Member(AbstractBaseUser, PermissionsMixin):
         (GENDER_FEMALE, 'Female'),
     ]
 
-    email = models.EmailField(_('email address'), unique=True)
+    email = models.EmailField(_('E-mail'), unique=True)
     member_n = models.CharField(_('Member #'), max_length=10, blank=True)
     first_name = models.CharField(max_length=150, blank=True)
     last_name = models.CharField(max_length=150, blank=True)
@@ -115,7 +115,7 @@ class Member(AbstractBaseUser, PermissionsMixin):
         except:
             return None
 
-    def get_available_events(self):
+    def get_available_activities(self):
         excl_gen = 'F' if self.gender == 'M' else 'M'
         return Activity.objects.filter(type='clinic', date__datetime_start__gte=timezone.now()).exclude(event__gender=excl_gen).distinct()
 
@@ -223,15 +223,20 @@ class Court(models.Model):
 
     name = models.CharField(max_length=20, choices=COURT_CHOICES, unique=True)
 
+    @staticmethod
+    def get_open_courts(datetime_start, datetime_end):
+        # This returns all the courts that are not already reserved at the given time range.
+
+        occupied_courts = Court.objects.filter(
+            date__datetime_start__lte=datetime_end,
+            date__datetime_end__gte=datetime_start
+        )
+
+        available_courts = Court.objects.exclude(id__in=occupied_courts)
+        return available_courts
+
     def __str__(self):
         return self.name
-
-    def is_occupied(self, start_time, end_time):
-        return Date.objects.filter(
-            court=self,
-            datetime_start__lt=end_time,
-            datetime_end__gt=start_time
-        ).exists()
 
 
 class Activity(models.Model):
@@ -261,6 +266,37 @@ class Activity(models.Model):
 
     def __str__(self):
         return f"{self.get_title()} - {self.get_dates_desc()}"
+
+    def save(self, *args, **kwargs):
+        with transaction.atomic():
+            if self.pk is None:
+                super(Activity, self).save(*args, **kwargs)
+                try:
+                    self.update_date_instances()
+                except ValueError as ve:
+                    self.delete()
+                    raise ValueError(f"Error creating the activity: {ve}.")
+            else:
+                old_act = Activity.objects.get(pk=self.pk)
+                old_occur = sorted(
+                    list(old_act.recurrences.occurrences(dtend=DATE_LIMIT)))
+                new_occur = sorted(
+                    list(self.recurrences.occurrences(dtend=DATE_LIMIT)))
+                if str(old_act.start_time) != str(self.start_time) or str(old_act.end_time) != str(self.end_time):
+                    self.delete_future_dates()
+                    super(Activity, self).save(*args, **kwargs)
+                    try:
+                        self.update_date_instances()
+                    except ValueError as ve:
+                        raise ValueError(
+                            f"Error updating the new activity times: {ve}.")
+                elif old_occur != new_occur or old_act.capacity != self.capacity:
+                    super(Activity, self).save(*args, **kwargs)
+                    try:
+                        self.update_date_instances(old_occur)
+                    except ValueError as ve:
+                        raise ValueError(
+                            f"Error updating the new activity's dates: {ve}.")
 
     def clean(self):
         super().clean()
@@ -317,7 +353,7 @@ class Activity(models.Model):
         else:
             return Date.objects.filter(activity__id=self.id).order_by('-datetime_start').first()
 
-    def get_formatted_date(self, date, hour, minute):
+    def get_formatted_datetime(self, date, hour, minute):
         return make_date_aware(date.replace(hour=hour, minute=minute, second=0, microsecond=0))
 
     def is_clinic(self):
@@ -402,7 +438,7 @@ class Activity(models.Model):
         try:
             return str("On " + self.get_next_date().print_start_date())
         except:
-            return "No More Future Dates"
+            return "No more future dates"
 
     def get_date_by_datetime(self, datetime_start):
         # Returns the date instance based on the datetime_start
@@ -424,27 +460,7 @@ class Activity(models.Model):
         try:
             return self.get_next_date().get_all_parts()
         except:
-            return "No next date"
-
-    def get_open_courts(self, datetime_start, datetime_end, num_courts_needed, assigned_courts=None):
-        # This returns all the courts that are not already reserved at the given time range.
-        courts = Court.objects.filter(
-            ~Q(date__datetime_start__lt=datetime_end,
-               date__datetime_end__gt=datetime_start)
-        )
-
-        if assigned_courts:
-            assigned_court_ids = [court.id for court in assigned_courts]
-            courts = courts.exclude(id__in=assigned_court_ids)
-
-        # Convert queryset to list
-        courts = list(courts)
-
-        # Check if the number of available courts is less than the required amount
-        if len(courts) < num_courts_needed:
-            return None
-        else:
-            return courts[:num_courts_needed]
+            return "No participants for no date"
 
     def update_date_instances(self, old_occurrences=None, limit=MAX_DATES) -> None:
         """
@@ -454,88 +470,46 @@ class Activity(models.Model):
         dates.
         """
         # It will only create future dates
-        yesterday = datetime.today() - timedelta(days=1)
+        today = datetime.today()
         to_create = list(self.recurrences.between(
-            yesterday, DATE_LIMIT))[:limit]
+            today, DATE_LIMIT))[:limit]
         # Checks if old_occurrences has been passed as an argument.
         if old_occurrences:
             # Based on the sets, to_create only has the dates that have been added.
-            to_create = list(set(to_create) - set(old_occurrences))[:limit]
+            to_create = sorted(
+                list(set(to_create) - set(old_occurrences)))[:limit]
             # Based on the sets, to_delete only has the dates that have been removed.
-            to_delete = list(set(old_occurrences) -
-                             set(self.recurrences.between(yesterday, DATE_LIMIT)))
+            to_delete = sorted(list(set(old_occurrences) -
+                                    set(self.recurrences.between(today, DATE_LIMIT))))
             for date in to_delete:
-                datetime_start = self.get_formatted_date(
+                datetime_start = self.get_formatted_datetime(
                     date, self.start_time.hour, self.start_time.minute)
-                date_instance = self.get_date_by_datetime(datetime_start)
-                if date_instance:
-                    date_instance.delete()
+                date = self.get_date_by_datetime(datetime_start)
+                if date:
+                    date.delete()
 
             # For updating the dates' capacity and courts
             for old_date in old_occurrences:
-                datetime_start = self.get_formatted_date(
+                datetime_start = self.get_formatted_datetime(
                     old_date, self.start_time.hour, self.start_time.minute)
-                date_instance = self.get_date_by_datetime(datetime_start)
-
-                if date_instance:
-                    if date_instance.capacity != self.capacity:
+                date = self.get_date_by_datetime(datetime_start)
+                if date:
+                    if self.capacity != date.capacity:
+                        date.capacity = self.capacity
                         try:
-                            date_instance.capacity = self.capacity
-                            date_instance.update_court()  # Here we update the courts of the date
-                            date_instance.save()
+                            date.save()
                         except ValueError as ve:
                             raise ValueError(
-                                f"Error updating the courts: {ve}")
+                                f"Error updating the courts: {ve}.")
 
         # For creating brand new dates
-        num_courts_needed = math.ceil(self.capacity / MAX_P_P_COURT)
         for date in to_create:
-            datetime_start = self.get_formatted_date(
+            datetime_start = self.get_formatted_datetime(
                 date, self.start_time.hour, self.start_time.minute)
-            datetime_end = self.get_formatted_date(
+            datetime_end = self.get_formatted_datetime(
                 date, self.end_time.hour, self.end_time.minute)
-            open_courts = self.get_open_courts(
-                datetime_start, datetime_end, num_courts_needed)
-            if Date.objects.can_create_date(datetime_start=datetime_start,
-                                            datetime_end=datetime_end,
-                                            num_courts_needed=num_courts_needed,
-                                            courts=open_courts):
-                date_instance = Date.objects.create(activity=self, datetime_start=datetime_start,
-                                                    datetime_end=datetime_end, capacity=self.capacity)
-                date_instance.update_court()  # Here we add the courts to the date
-            else:
-                raise ValueError(
-                    f"Error creating courts for date: {date}. There are not enough courts for the Activity's capacity.")
-
-    def update_activity_and_dates(self, form, old_activity) -> None:
-        old_occur = list(
-            old_activity.recurrences.occurrences(dtend=DATE_LIMIT))
-        new_occur = list(
-            self.recurrences.occurrences(dtend=DATE_LIMIT))
-        if str(old_activity.start_time) != str(self.start_time) or \
-           str(old_activity.end_time) != str(self.end_time):
-            self.delete_future_dates()
-            self.update_date_instances()
-        elif old_occur != new_occur or old_activity.capacity != self.capacity:
-            self.update_date_instances(old_occur)
-        form.save()
-
-
-class DateManager(models.Manager):
-    def can_create_date(self, datetime_start, datetime_end, num_courts_needed, courts):
-        if courts:
-            num_courts = len(courts)
-        else:
-            return False
-
-        if num_courts < num_courts_needed:
-            return False
-
-        for court in courts:
-            if court.is_occupied(datetime_start, datetime_end):
-                return False
-
-        return True
+            Date.objects.create(activity=self, datetime_start=datetime_start,
+                                datetime_end=datetime_end, capacity=self.capacity)
 
 
 class Date(models.Model):
@@ -548,10 +522,37 @@ class Date(models.Model):
         Member, through='Participation', blank=True)
     capacity = models.IntegerField("Capacity", default=MAX_P_P_COURT)
     court = models.ManyToManyField(Court)
-    objects = DateManager()
 
     REQUIRED_FIELDS = ['activity', 'datetime_start',
                        'datetime_end', 'capacity', 'court']
+
+    def save(self, *args, **kwargs):
+        with transaction.atomic():
+            if self.pk is None:
+                num_courts_needed = math.ceil(self.capacity / MAX_P_P_COURT)
+                courts = Date.get_courts(datetime_start=self.datetime_start,
+                                         datetime_end=self.datetime_end,
+                                         num_courts_needed=num_courts_needed)
+                if courts:
+                    self.courts.add(*courts)
+                else:
+                    raise ValueError(
+                        f"Could not create Date for the capacity specified {self.capacity}")
+            else:
+                try:
+                    self.update_courts()
+                    super(Date, self).save(*args, **kwargs)
+                except ValueError as ve:
+                    raise ValueError(
+                        f"Could not update the Date {str(self)}: ", ve)
+
+    @staticmethod
+    def get_courts(datetime_start, datetime_end, num_courts_needed):
+        open_courts = Court.get_open_courts(datetime_start, datetime_end)
+        if len(open_courts) < num_courts_needed:
+            return None
+        else:
+            return list(open_courts)[:num_courts_needed]
 
     def clean(self):
         super().clean()
@@ -587,26 +588,31 @@ class Date(models.Model):
     def __hash__(self):
         return hash((self.datetime_start,))
 
-    def update_court(self):
+    def update_courts(self):
+        open_courts = Court.get_open_courts(
+            self.datetime_start, self.datetime_end)
         courts_used = self.court.all()
         new_courts_needed = (self.capacity - 1) // MAX_P_P_COURT + 1
-        if not courts_used:
-            old_courts_needed = 0
-        else:
+        if courts_used.exists():
             old_courts_needed = len(courts_used)
+        else:
+            old_courts_needed = 0
+        print("New Capacity: ", self.capacity)
+        print("Old Courts needed: ", old_courts_needed)
+        print("New Courts needed: ", new_courts_needed)
+
         if new_courts_needed > old_courts_needed:
             courts_needed = new_courts_needed - old_courts_needed
-            open_courts = self.activity.get_open_courts(
-                self.datetime_start, self.datetime_end, courts_needed, courts_used)
-            if open_courts is None:
+            if len(open_courts) < courts_needed:
                 raise ValueError(
                     f"Could not find {courts_needed} open courts")
             else:
-                for court in open_courts:
+                for court in open_courts[:courts_needed]:
                     self.court.add(court)
         elif new_courts_needed < old_courts_needed:
             courts_to_remove = old_courts_needed - new_courts_needed
             for court in list(self.court.all().order_by('-id'))[:courts_to_remove]:
+                print("Removing a court")
                 self.court.remove(court)
 
     def print_date(self):

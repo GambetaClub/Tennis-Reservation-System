@@ -1,12 +1,12 @@
 {% extends 'main/base.html' %} 
+
 {% block head %} 
 {% load static %}
-	<link rel="stylesheet" href="{% static 'css/edit_forms.css' %}" />
-	<script src="{% static 'js/forms.js' %}"></script>
-{% endblock head %} 
+<link rel="stylesheet" href="{% static 'css/forms.css' %}" />
+<script src="{% static 'js/forms.js' %}"></script>
+{% endblock head %}
+
 {% block content %}
-
-
 <form method="post" action="{% url 'create_activity' %}">
 	<div class="form-container">
 		{% csrf_token %} {{ form.media }}

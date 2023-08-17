@@ -1,57 +1,73 @@
 {% extends 'main/base.html' %}
-{% block head %} 
+
+{% block head %}
 {% load static %}
-	<link rel="stylesheet" href="{% static 'css/edit_forms.css' %}" />
+<link rel="stylesheet" href="{% static 'css/forms.css' %}" />
+<script src="{% static 'js/forms.js' %}"></script>
 {% endblock head %}
+
 {% block content %}
-	<form
-		method="post"
-		class="edit-form"
-		action="{% url 'edit_event' event.id %}"
-	>
-		<div class="form-container">
-			{% csrf_token %} {{ form.media }}
-			<div class="row justify-content-center">
-				<div class="form-group col-md-6">
-					{{ form.title }}
-				</div>
-			</div>
-			<div class="row justify-content-center">
-				<div class="form-group col-md-6">
-					{{ form.description.label }} {{ form.description }}
-				</div>
-			</div>
-			<div class="row justify-content-center">
-				<div class="form-group col-md-3">
-					{{ form.gender.label }} {{ form.gender }}
-				</div>
-				<div class="form-group col-md-3">
-					{{ form.team.label }} {{ form.team }}
-				</div>
-			</div>
-			<div class="row justify-content-center">
-				<button type="submit" class="btn btn-primary mb-2">
-					Save Event
-				</button>
+<form method="post" action="{% url 'edit_event' event.id %}">
+	<div class="form-container">
+		{% csrf_token %} {{ form.media }}
+		<div class="row justify-content-center">
+			<div class="form-group col-md-6">
+				{{ form.title.label }}{{ form.title }}
+				{% if form.title.errors %}
+				<span class="form-error" role="alert">
+					{{ form.title.errors }}
+				</span>
+				{% endif %}
 			</div>
 		</div>
-	</form>
-	<div class="row justify-content-center">
-	{% if activities %}
-		Activities:
-		{% for activity in activities %}
-			<a href="{% url 'edit_activity' activity.id %}">{{activity}}</a>
-			{% if activity.is_active %}
-				<i class="bx bx-check-circle"></i>
-			{% else %}
-				<i class="bx bxs-no-entry"></i>
-			{% endif %}	
-			
-		{% endfor %}
-	{% else %}
-		No activities
-	{% endif %}
+		<div class="row justify-content-center">
+			<div class="form-group col-md-6">
+				{{ form.description.label }} {{ form.description }}
+				{% if form.description.errors %}
+				<span class="form-error" role="alert">
+					{{ form.description.errors }}
+				</span>
+				{% endif %}
+			</div>
+		</div>
+		<div class="row justify-content-center">
+			<div class="form-group col-md-3">
+				{{ form.gender.label }} {{ form.gender }}
+				{% if form.gender.errors %}
+				<span class="form-error" role="alert">
+					{{ form.gender.errors }}
+				</span>
+				{% endif %}
+			</div>
+			<div class="form-group col-md-3">
+				{{ form.team.label }} {{ form.team }}
+				{% if form.team.errors %}
+				<span class="form-error" role="alert">
+					{{ form.team.errors }}
+				</span>
+				{% endif %}
+			</div>
+		</div>
+		<div class="row justify-content-center">
+			<button type="submit" class="btn btn-primary mb-2">
+				Save Event
+			</button>
+		</div>
 	</div>
-
+</form>
+<div class="row justify-content-center">
+	{% if activities %}
+	Activities:
+	{% for activity in activities %}
+		<a href="{% url 'edit_activity' activity.id %}">{{ activity }}</a>
+		{% if activity.is_active %}
+		<i class="bx bx-check-circle"></i>
+		{% else %}
+		<i class="bx bxs-no-entry"></i>
+		{% endif %}
+	{% endfor %}
+	{% else %}
+	No activities
+	{% endif %}
+</div>
 {% endblock content %}
-

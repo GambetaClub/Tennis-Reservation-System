@@ -1,45 +1,45 @@
 {% extends 'main/base.html' %}
-{% block head %} 
+
+{% block head %}
 {% load static %}
-    <link rel="stylesheet" href="{% static 'css/edit_forms.css' %}" />
-    <script src="{% static 'js/forms.js' %}"></script>
+<link rel="stylesheet" href="{% static 'css/forms.css' %}" />
+<script src="{% static 'js/forms.js' %}"></script>
 {% endblock head %}
+
 {% block content %}
-
-
-<form method="post" class="edit-form" action="{% url 'edit_date' date.id %}">
+<form method="post" action="{% url 'edit_date' date.id %}">
     <div class="form-container">
         {% csrf_token %} {{ form.media }}
         <div class="row justify-content-center">
             <div class="form-group col-md-6">
-                Current Activity: <a href="{% url 'edit_activity' activity.id %}">{{activity}}</a> <br>
+                Current Activity: <a href="{% url 'edit_activity' activity.id %}">{{ activity }}</a> <br>
                 {{ form.activity.label }}
                 {{ form.activity }}
-				{% if form.activity.errors %}
-				<span class="form-error" role="alert">
-					{{ form.activity.errors }}
-				</span>
-				{% endif %}
-			</div>
+                {% if form.activity.errors %}
+                <span class="form-error" role="alert">
+                    {{ form.activity.errors }}
+                </span>
+                {% endif %}
+            </div>
         </div>
         <div class="row justify-content-center">
             <div class="form-group col-md-3">
                 {{ form.datetime_start.label }} 
                 {{ form.datetime_start }}
                 {% if form.datetime_start.errors %}
-				<span class="form-error" role="alert">
-					{{ form.datetime_start.errors }}
-				</span>
-				{% endif %}
+                <span class="form-error" role="alert">
+                    {{ form.datetime_start.errors }}
+                </span>
+                {% endif %}
             </div>
             <div class="form-group col-md-3">
                 {{ form.datetime_end.label }} 
                 {{ form.datetime_end }}
                 {% if form.datetime_end.errors %}
-				<span class="form-error" role="alert">
-					{{ form.datetime_end.errors }}
-				</span>
-				{% endif %}
+                <span class="form-error" role="alert">
+                    {{ form.datetime_end.errors }}
+                </span>
+                {% endif %}
             </div>
         </div>
         <div class="row justify-content-center">
@@ -47,18 +47,18 @@
                 {{ form.capacity.label }} 
                 {{ form.capacity }}
                 {% if form.capacity.errors %}
-                    <span class="form-error" role="alert">
-                        {{ form.capacity.errors }}
-                    </span>
-				{% endif %}
+                <span class="form-error" role="alert">
+                    {{ form.capacity.errors }}
+                </span>
+                {% endif %}
             </div>
             <div class="form-group col-md-3">
                 {{ form.court }}
                 {% if form.court.errors %}
-				<span class="form-error" role="alert">
-					{{ form.court.errors }}
-				</span>
-				{% endif %}
+                <span class="form-error" role="alert">
+                    {{ form.court.errors }}
+                </span>
+                {% endif %}
             </div>
         </div>
         <div class="row justify-content-center">
@@ -77,13 +77,12 @@
                 {{ form.participants.label }}
                 {{ form.participants }}
                 {% if form.participants.errors %}
-				<div class="alert alert-danger" role="alert">
-					{{ form.participants.errors }}
-				</div>
-				{% endif %}
+                <div class="alert alert-danger" role="alert">
+                    {{ form.participants.errors }}
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </form>
-
 {% endblock content %}

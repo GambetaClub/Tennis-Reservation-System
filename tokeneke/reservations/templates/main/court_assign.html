@@ -1,52 +1,52 @@
-{% extends  'main/base.html' %}
+{% extends 'main/base.html' %}
+
 {% block head %}
 {% load static %}
 <link rel="stylesheet" href="{% static 'css/court_assign.css' %}">
-{% endblock %}
+{% endblock head %}
+
 {% block content %}
-{% if on_court %}
-<div class="courts_container">
-   {% for player in on_court %}
-   {% if forloop.counter0|divisibleby:4 %}
-   <div class="court_wrapper">
-      <div class="court grass">
-         <div class="sidelineA"></div>
-         <div class="main">
-            <div class="back">
+    {% if on_court %}
+        <div class="courts_container">
+            {% for player in on_court %}
+                {% if forloop.counter0|divisibleby:4 %}
+                    <div class="court_wrapper">
+                        <div class="court grass">
+                            <div class="sidelineA"></div>
+                            <div class="main">
+                                <div class="back"></div>
+                                <div class="front">
+                                    <div class="half"></div>
+                                </div>
+                            </div>
+                            <div class="sidelineB"></div>
+                        </div>
+                {% endif %}
+                <div id="{% cycle 'player1' 'player2' 'player3' 'player4' %}">
+                    <b class="avatar_label">{{ player }}</b>
+                    <img src="{{ player.profile_pic.url }}" />
+                </div>
+                {% if forloop.counter|divisibleby:4 or forloop.last %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% if on_wait %}
+            <div class="wait_list_container">
+                <div class="wait_list">
+                    <ol>
+                        <h4>Wait List</h4>
+                        {% for participant in on_wait %}
+                            <li>
+                                <img src="{{ participant.profile_pic.url }}" />
+                                {{ participant }}
+                            </li>
+                        {% endfor %}
+                    </ol>
+                </div>
             </div>
-            <div class="front">
-               <div class="half">
-               </div>
-            </div>
-         </div>
-         <div class="sidelineB"></div>
-      </div>
-      {% endif %}
-      <div id="{% cycle 'player1' 'player2' 'player3' 'player4' %}">
-         <b class="avatar_label">{{ player }}</b>
-         <img src="{{ player.profile_pic.url }}" />
-      </div>
-      {% if forloop.counter|divisibleby:4 or forloop.last %}
-   </div>
-   {% endif %}
-   {% endfor %}
-</div>
-{% if on_wait %}
-<div class="wait_list_container">
-   <div class="wait_list">
-      <ol>
-         <h4>Wait List</h4>
-         {% for participant in on_wait %}
-         <li>
-            <img src="{{ participant.profile_pic.url }}" />
-            {{ participant }}
-         </li>
-         {% endfor %}
-      </ol>
-   </div>
-</div>
-{% endif %}
-{% else %}
-<h1 class="center">No participants yet</h1>
-{% endif %}
+        {% endif %}
+    {% else %}
+        <h1 class="center">No participants yet</h1>
+    {% endif %}
 {% endblock content %}

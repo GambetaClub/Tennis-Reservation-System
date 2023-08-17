@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .forms import CreateMemberForm, MemberAuthForm, CreateEventForm, CreateActivityForm, CreateDateForm, UpdateMemberForm
+from .forms import CreateMemberForm, MemberAuthForm, CreateEventForm, CreateActivityForm, CreateDateForm, UpdateMemberForm, CreateParticipationForm
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.urls import reverse
@@ -12,7 +12,6 @@ from django.http import JsonResponse
 from .models import Event, Activity, Date, Participation, Court
 from datetime import date as datetimedate
 from datetime import datetime
-from .constants import DATE_LIMIT
 import json
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -45,10 +44,9 @@ def filter_events(request):
 
 @login_required
 def home(request):
-    create_courts()
     # Querying all the events that have a next date after today. The next date field takes
     # care of giving the next date based on todays date.
-    activities = request.user.get_available_events()
+    activities = request.user.get_available_activities()
     return render(request, 'main/home.html', {
         'activities': activities,
         'page_title': 'Events Available',
@@ -76,13 +74,13 @@ def my_activities(request):
 
 @login_required
 @staff_member_required
-def edit_all_events(request):
+def edit_all_activities(request):
     all_activities = Activity.objects.all()
     return render(request, 'main/home.html', {
         'page_title': 'All Activities',
         'activities': all_activities,
         'titles': {
-            'All Events': all_activities.count(),
+            'All Events': len(all_activities)
         }
     })
 
@@ -141,24 +139,17 @@ def create_event(request):
 @login_required
 @staff_member_required
 def create_activity(request):
-    if not request.user.is_staff:
-        messages.info(
-            request, f"You can't create an activity since you are not a staff member.")
-        return redirect("home")
-    form = CreateActivityForm()
-    if request.method == "POST":
-        form = CreateActivityForm(request.POST)
-        if form.is_valid():
-            activity = form.save(commit=False)
-            try:
-                activity.full_clean()
-                activity.save()
-                activity.update_date_instances()
-                messages.success(
-                    request, 'You created the activity successfully.')
-                return redirect('home')
-            except ValidationError as e:
-                form.add_error(None, e)
+    form = CreateActivityForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        activity = form.save(commit=False)
+        try:
+            activity.full_clean()
+            activity.save()
+            messages.success(
+                request, 'You created the activity successfully.')
+            return redirect('home')
+        except ValidationError as e:
+            messages.error(request, e)
     return render(request, 'main/create_activity.html', {'form': form})
 
 
@@ -167,7 +158,7 @@ def create_activity(request):
 def edit_event(request, event_id):
     event = get_object_or_404(Event, id=event_id)
     form = CreateEventForm(request.POST or None, instance=event)
-    if form.is_valid():
+    if request.method == 'POST' and form.is_valid():
         form.save()
         messages.success(request, f"You edited the event: {event.title}.")
         return redirect('home')
@@ -191,18 +182,16 @@ def edit_profile(request):
 @staff_member_required
 def edit_activity(request, activity_id):
     activity = get_object_or_404(Activity, id=activity_id)
-    old_activity = copy.copy(activity)
     form = CreateActivityForm(request.POST or None, instance=activity)
-    if form.is_valid():
+    if request.method == "POST" and form.is_valid():
         try:
             form.full_clean()
-            activity.update_activity_and_dates(form, old_activity)
+            activity.save()
             messages.success(
                 request, f"You edited the activity: {activity.title}.")
             return redirect('home')
         except ValueError as e:
             messages.error(request, e)
-
     return render(request, 'main/edit_activity.html', {
         'event': activity.event,
         'activity': activity,
@@ -218,7 +207,7 @@ def edit_date(request, date_id):
     form = CreateDateForm(request.POST or None, instance=date)
     if form.is_valid():
         form.save()
-        form.instance.update_court()
+        form.instance.update_courts()
         messages.success(request, f"You edited the date: {date}.")
         return redirect("home")
     participants = date.get_all_parts()
@@ -257,7 +246,7 @@ def event_participants(request, event_id):
 
 def add_participant(request):
     if request.method == 'POST':
-        form = AddParticipantForm(request.POST)
+        form = CreateParticipationForm(request.POST)
         if form.is_valid():
             event = get_object_or_404(Event, id=form.cleaned_data['event_id'])
             dates = json.loads(form.cleaned_data['dates'])

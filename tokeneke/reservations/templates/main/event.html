@@ -1,38 +1,43 @@
-{% extends  'main/base.html' %}
-{% block head %} {% load static %}
+{% extends 'main/base.html' %}
+
+{% block head %}
+{% load static %}
 <link rel="stylesheet" href="{% static 'css/event.css' %}">
-<script src="{% static 'js/event.js' %}"></script> {% endblock head %}
-{% block content %} 
-<h1>{{event.title}}</h1>
+<script src="{% static 'js/event.js' %}"></script>
+{% endblock head %}
+
+{% block content %}
+<h1>{{ event.title }}</h1>
 <form id="dates-form" method="POST" data-url="{% url 'add_participant' %}">
-  <input type="hidden" id="event_id" name="event_id" value="{{event.id}}"> {% csrf_token %} 
+  <input type="hidden" id="event_id" name="event_id" value="{{ event.id }}">
+  {% csrf_token %}
   <fieldset class="checkbox-group" name="checkbox">
-    {% for date in dates %} 
+    {% for date in dates %}
     <div class="checkbox">
-      <label class="checkbox-wrapper"> 
-      {% if date in user_dates %}
-      {% if date.is_registrable %}
-      <input type="checkbox" class="checkbox-input" value={{date.id}} name="date_input" checked /> 
-      {% else %}
-      <input type="checkbox" class="checkbox-input" value={{date.id}} name="date_input" checked disabled/> 
-      {% endif %}
-      {% else %}
-      <input type="checkbox" class="checkbox-input" value={{date.id}} name="date_input" />
-      {% endif %}
-      <span class="checkbox-tile">
-      <span class="checkbox-icon">
-      <b>{{ date.datetime_start|date:'l' }}</b>
-      </span>
-      <span class="checkbox-label">
-      <b>{{ date.datetime_start|date:'N jS' }}</b>
-      <br> {{ date.datetime_start|date:'g:i A'}}
-      </span>
-      </span>
+      <label class="checkbox-wrapper">
+        {% if date in user_dates %}
+        {% if date.is_registrable %}
+        <input type="checkbox" class="checkbox-input" value={{ date.id }} name="date_input" checked />
+        {% else %}
+        <input type="checkbox" class="checkbox-input" value={{ date.id }} name="date_input" checked disabled />
+        {% endif %}
+        {% else %}
+        <input type="checkbox" class="checkbox-input" value={{ date.id }} name="date_input" />
+        {% endif %}
+        <span class="checkbox-tile">
+          <span class="checkbox-icon">
+            <b>{{ date.datetime_start|date:'l' }}</b>
+          </span>
+          <span class="checkbox-label">
+            <b>{{ date.datetime_start|date:'N jS' }}</b>
+            <br> {{ date.datetime_start|date:'g:i A'}}
+          </span>
+        </span>
       </label>
     </div>
-    {% empty %} 
+    {% empty %}
     <h4>No dates</h4>
-    {% endfor %} 
+    {% endfor %}
   </fieldset>
   <div class="row justify-content-center">
     <button type="submit" class="btn btn-primary btn-lg">Done</button>

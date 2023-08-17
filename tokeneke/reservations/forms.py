@@ -1,12 +1,10 @@
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, UserChangeForm
 from .models import Member, Event, Participation, Activity, Date
 from django import forms
+import math
+from .constants import *
 from django.forms import TextInput, Textarea, Select, CheckboxInput, TimeInput
 from django.core.exceptions import ValidationError
-
-
-class TimePickerInput(forms.TimeInput):
-    input_type = 'time'
 
 
 class CreateMemberForm(UserCreationForm):
@@ -112,6 +110,13 @@ class CreateDateForm(forms.ModelForm):
         datetime_start = cleaned_data.get('datetime_start')
         datetime_end = cleaned_data.get('datetime_end')
         court = cleaned_data.get('court')
+        capacity = cleaned_data.get('capacity')
+        selected_courts = cleaned_data.get('court')
+
+        n_needed_courts = math.ceil(capacity / MAX_P_P_COURT)
+        if len(selected_courts) != n_needed_courts:
+            self.add_error(
+                'court', f'The capacity requires {n_needed_courts} courts')
 
         # If these variables are None, that means validation failed for these fields. So, we can skip the overlap check.
         if datetime_start is not None and datetime_end is not None and court is not None:

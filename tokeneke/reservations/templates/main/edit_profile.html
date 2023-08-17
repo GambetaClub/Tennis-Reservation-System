@@ -1,41 +1,59 @@
-{% extends  'main/base.html' %}
+{% extends 'main/base.html' %}
 
 {% block head %}
 {% load static %}
+<link rel="stylesheet" href="{% static 'css/forms.css' %}" />
 <link rel="stylesheet" href="{% static 'css/edit_profile.css' %}">
+<script src="{% static 'js/forms.js' %}"></script>
 {% endblock head %}
+
 {% block content %}
-  <form class="form-container" method = "POST" action="{% url 'edit_profile' %}" enctype="multipart/form-data">
-    {% csrf_token %}
+<form class="form-container" method="POST" action="{% url 'edit_profile' %}" enctype="multipart/form-data">
+    {% csrf_token %} {{ form.media }}
     <div class="picture_wrapper">
-      <img src="{{user.profile_pic.url}}" id="photo">
-      <input type="file" id="id_profile_pic" name='profile_pic' accept="image/*">
-      <label for="id_profile_pic" id="uploadBtn">Change Photo</label>
+        <img src="{{ user.profile_pic.url }}" id="photo">
+        <input type="file" id="id_profile_pic" name='profile_pic' accept="image/*">
+        <label for="id_profile_pic" id="uploadBtn">Change Photo</label>
     </div>
-      <div class="form-group col-md-6">
+    <div class="form-group col-md-6">
         {{ form.first_name.label }}
         {{ form.first_name }}
-      </div>
-      <div class="form-group col-md-6">
+        {% if form.first_name.errors %}
+        <span class="form-error" role="alert">
+            {{ form.first_name.errors }}
+        </span>
+        {% endif %}
+    </div>
+    <div class="form-group col-md-6">
         {{ form.last_name.label }}
         {{ form.last_name }}
-      </div>
-      <div class="form-group col-md-6">
+        {% if form.last_name.errors %}
+        <span class="form-error" role="alert">
+            {{ form.last_name.errors }}
+        </span>
+        {% endif %}
+    </div>
+    <div class="form-group col-md-6">
         {{ form.email.label }}
         {{ form.email }}
-      </div>
-      <div class="form-group col-md-6">
+        {% if form.email.errors %}
+        <span class="form-error" role="alert">
+            {{ form.email.errors }}
+        </span>
+        {% endif %}
+    </div>
+    <div class="form-group col-md-6">
         {{ form.member_n.label }}
         {{ form.member_n }}
-      </div>
-      <div class="save-button">
+        {% if form.member_n.errors %}
+        <span class="form-error" role="alert">
+            {{ form.member_n.errors }}
+        </span>
+        {% endif %}
+    </div>
+    <div class="save-button">
         <button type="submit" class="btn btn-primary mb-2">Save</button>
-      </div> 
-  </form>
-    
-
-
+    </div>
+</form>
 <script src="{% static 'js/edit_profile.js' %}"></script>
-
-
 {% endblock content %}

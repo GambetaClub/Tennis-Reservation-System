@@ -11,7 +11,8 @@ urlpatterns = [
     path('register', views.register, name='register'),
     path('login', views.login_user, name='login'),
     path('logout', views.logout_user, name='logout'),
-    path('edit_all_events', views.edit_all_events, name='edit_all_events'),
+    path('edit_all_activities', views.edit_all_activities,
+         name='edit_all_activities'),
     path('reset_password', auth_views.PasswordResetView.as_view(
         template_name="auth/password_reset.html"), name="reset_password"),
     path('reset_password_sent', auth_views.PasswordResetDoneView.as_view(
