@@ -13,7 +13,9 @@
         Cannot to be linked to an Event: DONE 
 
 * Override the dave method of the Date model in order to update the court everytime is saved.
-    Do with @transaction.atomic
+    Do with @transaction.atomic: DONE
+
+* In Date.get_courts() implement a way that the function takes as an argument if it's a clinic or not.
 
 * Create Test for models: 
     Member: Done

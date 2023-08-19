@@ -123,7 +123,7 @@
                                         </div>
                                         <div class="days-left">
                                             <a href="{% url 'event_participants' activity.event.id %}">
-                                                {{ activity.get_remaining_days }}
+                                                {{ activity.print_remaining_days }}
                                             </a>
                                         </div>
                                     </div>
@@ -176,7 +176,7 @@
                                         </div>
                                         <div class="days-left">
                                             <a href="#">
-                                                {{ activity.get_remaining_days }}
+                                                {{ activity.print_remaining_days }}
                                             </a>
                                         </div>
                                     </div>

@@ -3,29 +3,15 @@ from django.core.exceptions import ObjectDoesNotExist
 from .validators import validate_percentage
 from django.utils.translation import gettext_lazy as _
 import recurrence.fields
-from django.db.models import Q
+from .exceptions import *
 from django.utils.timezone import make_aware
 from django.utils import timezone
 import math
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
-from datetime import datetime, timedelta, time
+from datetime import datetime, time
+
 from django.core.exceptions import ValidationError
 from .constants import *
-
-"""
-Helper functions
-"""
-
-
-def make_date_aware(date):
-    return make_aware(date, timezone=timezone.get_current_timezone())
-
-
-def is_today(date):
-    aware_date = make_aware(
-        date, timezone.get_current_timezone()).strftime("%d %b, %Y")
-    today = timezone.now().date().strftime("%d %b, %Y")
-    return aware_date == today
 
 
 class CustomAccountManager(BaseUserManager):
@@ -270,33 +256,61 @@ class Activity(models.Model):
     def save(self, *args, **kwargs):
         with transaction.atomic():
             if self.pk is None:
-                super(Activity, self).save(*args, **kwargs)
-                try:
-                    self.update_date_instances()
-                except ValueError as ve:
-                    self.delete()
-                    raise ValueError(f"Error creating the activity: {ve}.")
+                self._create_activity(*args, **kwargs)
             else:
-                old_act = Activity.objects.get(pk=self.pk)
-                old_occur = sorted(
-                    list(old_act.recurrences.occurrences(dtend=DATE_LIMIT)))
-                new_occur = sorted(
-                    list(self.recurrences.occurrences(dtend=DATE_LIMIT)))
-                if str(old_act.start_time) != str(self.start_time) or str(old_act.end_time) != str(self.end_time):
-                    self.delete_future_dates()
-                    super(Activity, self).save(*args, **kwargs)
-                    try:
-                        self.update_date_instances()
-                    except ValueError as ve:
-                        raise ValueError(
-                            f"Error updating the new activity times: {ve}.")
-                elif old_occur != new_occur or old_act.capacity != self.capacity:
-                    super(Activity, self).save(*args, **kwargs)
-                    try:
-                        self.update_date_instances(old_occur)
-                    except ValueError as ve:
-                        raise ValueError(
-                            f"Error updating the new activity's dates: {ve}.")
+                self._update_activity(*args, **kwargs)
+
+    def _create_activity(self, *args, **kwargs):
+        with transaction.atomic():
+            super(Activity, self).save(*args, **kwargs)
+            try:
+                self.update_date_instances()
+            except DateCreationError as dce:
+                self.delete()
+                raise ActivityCreationError(
+                    f"Error creating the Activity: {dce}.")
+
+    def _update_activity(self):
+        with transaction.atomic():
+            old_act = Activity.objects.get(pk=self.pk)
+            old_occur = self._get_sorted_occurrences(old_act)
+
+            if self._times_changed(old_act):
+                self._update_activity_times()
+            elif self._dates_or_capacity_changed(old_occur, old_act):
+                self._update_activity_dates(old_occur)
+
+    def _get_sorted_occurrences(self, activity):
+        return sorted(list(activity.recurrences.occurrences(dtend=DATE_LIMIT)))
+
+    def _times_changed(self, old_activity):
+        return (
+            str(old_activity.start_time) != str(self.start_time)
+            or str(old_activity.end_time) != str(self.end_time)
+        )
+
+    def _dates_or_capacity_changed(self, old_occurrences, old_activity):
+        return (
+            old_occurrences != self._get_sorted_occurrences(self)
+            or old_activity.capacity != self.capacity
+        )
+
+    def _update_activity_times(self):
+        self.delete_future_dates()
+        super(Activity, self).save()
+        try:
+            self.update_date_instances()
+        except DateUpdateError as due:
+            raise ActivityUpdateError(
+                f"Error updating the new Activity's times: {due}.")
+
+    def _update_activity_dates(self, old_occurrences):
+        super(Activity, self).save()
+        try:
+            self.update_date_instances(old_occurrences)
+        except DateUpdateError as due:
+            raise ActivityUpdateError(
+                f"Error updating the new Activity's dates: {due}.")
 
     def clean(self):
         super().clean()
@@ -354,7 +368,7 @@ class Activity(models.Model):
             return Date.objects.filter(activity__id=self.id).order_by('-datetime_start').first()
 
     def get_formatted_datetime(self, date, hour, minute):
-        return make_date_aware(date.replace(hour=hour, minute=minute, second=0, microsecond=0))
+        return make_aware(date.replace(hour=hour, minute=minute, second=0, microsecond=0))
 
     def is_clinic(self):
         return self.type == Activity.TYPE_CLINIC
@@ -412,23 +426,29 @@ class Activity(models.Model):
         if self.get_next_date():
             return self.get_next_date().get_formatted_duration()
 
-    def get_remaining_days(self):
+    def print_remaining_days(self):
         # Returns a string of the remaining days for the fut Date
         try:
-            remaining = (self.get_next_date().datetime_start -
-                         timezone.now()).days
-            if remaining < 0:
-                if remaining == -1:
-                    remaining = "Yesterday"
+            next_date = self.get_next_date().datetime_start.date()
+            today = timezone.now().date()
+
+            # Calculate the difference in days
+            time_difference = next_date - today
+            remaining_days = time_difference.days
+
+            if remaining_days < 0:
+                if remaining_days == -1:
+                    remaining_days = "Yesterday"
                 else:
-                    remaining = str(abs(remaining)) + " days ago"
-            elif remaining == 0:
-                remaining = 'Today'
-            elif remaining == 1:
-                remaining = 'Tomorrow'
+                    remaining_days = str(abs(remaining_days)) + " days ago"
+            elif remaining_days == 0:
+                remaining_days = 'Today'
+            elif remaining_days == 1:
+                remaining_days = 'Tomorrow'
             else:
-                remaining = str(remaining + 1) + " days"
-            return remaining
+                remaining_days = str(remaining_days) + " days"
+
+            return remaining_days
         except:
             return "No more activities"
 
@@ -469,8 +489,9 @@ class Activity(models.Model):
         if there are dates that should be deleted or adjusted. It only deletes or adjusts future
         dates.
         """
-        # It will only create future dates
+        # It needs to be an unaware date, otherwise, it creates errors with recurrences.
         today = datetime.today()
+
         to_create = list(self.recurrences.between(
             today, DATE_LIMIT))[:limit]
         # Checks if old_occurrences has been passed as an argument.
@@ -480,7 +501,7 @@ class Activity(models.Model):
                 list(set(to_create) - set(old_occurrences)))[:limit]
             # Based on the sets, to_delete only has the dates that have been removed.
             to_delete = sorted(list(set(old_occurrences) -
-                                    set(self.recurrences.between(today, DATE_LIMIT))))
+                                    set(self.recurrences.between(today, DATE_LIMIT_DELETION))))
             for date in to_delete:
                 datetime_start = self.get_formatted_datetime(
                     date, self.start_time.hour, self.start_time.minute)
@@ -534,17 +555,18 @@ class Date(models.Model):
                                          datetime_end=self.datetime_end,
                                          num_courts_needed=num_courts_needed)
                 if courts:
-                    self.courts.add(*courts)
+                    super(Date, self).save(*args, **kwargs)
+                    self.court.add(*courts)
                 else:
-                    raise ValueError(
+                    raise DateCreationError(
                         f"Could not create Date for the capacity specified {self.capacity}")
             else:
                 try:
                     self.update_courts()
                     super(Date, self).save(*args, **kwargs)
                 except ValueError as ve:
-                    raise ValueError(
-                        f"Could not update the Date {str(self)}: ", ve)
+                    raise DateUpdateError(
+                        f"Could not update the Date {str(self)}: {ve}.")
 
     @staticmethod
     def get_courts(datetime_start, datetime_end, num_courts_needed):
@@ -597,9 +619,6 @@ class Date(models.Model):
             old_courts_needed = len(courts_used)
         else:
             old_courts_needed = 0
-        print("New Capacity: ", self.capacity)
-        print("Old Courts needed: ", old_courts_needed)
-        print("New Courts needed: ", new_courts_needed)
 
         if new_courts_needed > old_courts_needed:
             courts_needed = new_courts_needed - old_courts_needed
@@ -612,15 +631,14 @@ class Date(models.Model):
         elif new_courts_needed < old_courts_needed:
             courts_to_remove = old_courts_needed - new_courts_needed
             for court in list(self.court.all().order_by('-id'))[:courts_to_remove]:
-                print("Removing a court")
                 self.court.remove(court)
 
     def print_date(self):
         return self.get_datetime_start().strftime('%A, %b %-d - %I:%M%p')
 
     def is_registrable(self):
-        time_until = self.datetime_start - make_aware(datetime.now())
-        if time_until < timedelta(hours=24):
+        time_until = self.datetime_start - timezone.now()
+        if time_until < timezone.timedelta(hours=24):
             return False
         else:
             return True

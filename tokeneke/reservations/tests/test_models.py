@@ -2,6 +2,7 @@ from django.test import TestCase
 from ..models import *
 from datetime import datetime, time, timedelta
 from django.db.utils import IntegrityError
+from ..exceptions import *
 from django.utils.timezone import make_aware, get_current_timezone
 from django.core.exceptions import ValidationError
 from django.test import TestCase
@@ -358,7 +359,6 @@ class CourtModelTestCase(TestCase):
         datetime_end = self.get_next_monday(self.activity_time_end)
         n_courts_used = math.ceil(self.activity.capacity / MAX_P_P_COURT)
         n_courts_available = Court.objects.all().count() - n_courts_used
-        print(n_courts_used)
         self.assertEqual(len(Court.get_open_courts(
             datetime_start, datetime_end)), n_courts_available)
 
@@ -377,11 +377,20 @@ class ActivityModelTestCase(TestCase):
             "title": "Clinic for Men's Morning",
             "type": Activity.TYPE_CLINIC,
             "recurrences": f"RRULE:FREQ=WEEKLY;COUNT={self.dates_count};BYDAY=MO",
-            "start_time": time(8, 30, 00),
-            "end_time": time(9, 30, 00),
+            "start_time": time(21, 30, 00),
+            "end_time": time(22, 00, 00),
             "capacity": 8
         }
         self.activity = Activity.objects.create(**self.activity_data)
+
+    def get_day_by_offset(self, offset):
+        # Get the current day as an integer (0 for Monday, 6 for Sunday)
+        current_day_int = timezone.now().weekday()
+        target_day_int = (current_day_int + offset) % 7
+        days = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU']
+        target_day = days[target_day_int]
+
+        return target_day
 
     def test_activity_dates_creation(self):
         self.assertIsNotNone(self.activity.date_set.all())
@@ -389,7 +398,7 @@ class ActivityModelTestCase(TestCase):
     def test_activity_update_on_capacity(self):
         self.assertEqual(self.activity.get_next_date().capacity, 8)
         self.activity.capacity = 33
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ActivityUpdateError):
             self.activity.save()
         saved_activity = Activity.objects.get(pk=self.activity.pk)
         self.assertEqual(saved_activity.capacity, 8)
@@ -399,3 +408,53 @@ class ActivityModelTestCase(TestCase):
         activity = Activity.objects.create(**self.activity_data)
         activity.capacity = 12
         activity.save()
+        self.assertEqual(self.activity.capacity,
+                         self.activity.get_next_date().capacity)
+
+    def test_print_remaining_days_future(self):
+        # Test when there are future activities
+        # Set up a future date for the next activity
+
+        remaining_days = 5
+        self.activity.recurrences = f"RRULE:FREQ=WEEKLY;COUNT={self.dates_count};BYDAY={self.get_day_by_offset(remaining_days)}"
+        self.activity.save()
+
+        # Adjust the expected output based on your setup
+        self.assertEqual(self.activity.print_remaining_days(),
+                         f'{remaining_days} days')
+
+    # def test_print_remaining_days_today(self):
+    #     # Test when the next activity is today
+    #     self.get_day_by_offset
+    #     self.activity.recurrences = f"RRULE:FREQ=DAILY;COUNT=5;DTSTART={today.strftime('%Y%m%d')}"
+    #     self.activity.save()
+
+    #     remaining = self.activity.print_remaining_days()
+    #     self.assertEqual(remaining, "Today")
+
+    # def test_print_remaining_days_tomorrow(self):
+    #     # Test when the next activity is tomorrow
+    #     tomorrow = timezone.now() + timedelta(days=1)
+    #     self.activity.recurrences = f"RRULE:FREQ=DAILY;COUNT=5;DTSTART={tomorrow.strftime('%Y%m%d')}"
+    #     self.activity.save()
+
+    #     remaining = self.activity.print_remaining_days()
+    #     self.assertEqual(remaining, "Tomorrow")
+
+    # def test_print_remaining_days_yesterday(self):
+    #     # Test when the next activity was yesterday
+    #     yesterday = timezone.now() - timedelta(days=1)
+    #     self.activity.recurrences = f"RRULE:FREQ=DAILY;COUNT=5;DTSTART={yesterday.strftime('%Y%m%d')}"
+    #     self.activity.save()
+
+    #     remaining = self.activity.print_remaining_days()
+    #     self.assertEqual(remaining, "Yesterday")
+
+    # def test_print_remaining_days_no_activities(self):
+    #     # Test when there are no more activities
+    #     # Set up the recurrences to have no more activities
+    #     self.activity.recurrences = None
+    #     self.activity.save()
+
+    #     remaining = self.activity.print_remaining_days()
+    #     self.assertEqual(remaining, "No more activities")
