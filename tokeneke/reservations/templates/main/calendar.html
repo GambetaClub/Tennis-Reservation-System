@@ -6,10 +6,10 @@
 	var dates = JSON.parse(`{{ dates | safe }}`)
 </script>
 {% endblock head %}
-
 {% block content %}
+<h4 class="date-display">{{ date|date:"l d, F Y" }}</h4>
 <div class="panel">
-	<div class="schedule">
+	<div class="schedule" id="schedule">
 		<div class="schedule-header">
 			<div class="header-legend"></div>
 			<div class="schedule-col">Stadium Court</div>
@@ -24,311 +24,311 @@
 		<div class="schedule-body--helper">
 			<div class="schedule-body">
 				<div class="schedule-legend">
-					<div class="schedule-legend--row">6:00</div>
-					<div class="schedule-legend--row">6:30</div>
-					<div class="schedule-legend--row">7:00</div>
-					<div class="schedule-legend--row">7:30</div>
-					<div class="schedule-legend--row">8:00</div>
-					<div class="schedule-legend--row">8:30</div>
-					<div class="schedule-legend--row">9:00</div>
-					<div class="schedule-legend--row">9:30</div>
-					<div class="schedule-legend--row">10:00</div>
-					<div class="schedule-legend--row">10:30</div>
-					<div class="schedule-legend--row">11:00</div>
-					<div class="schedule-legend--row">11:30</div>
-					<div class="schedule-legend--row">12:00</div>
-					<div class="schedule-legend--row">12:30</div>
-					<div class="schedule-legend--row">13:00</div>
-					<div class="schedule-legend--row">13:30</div>
-					<div class="schedule-legend--row">14:00</div>
-					<div class="schedule-legend--row">14:30</div>
-					<div class="schedule-legend--row">15:00</div>
-					<div class="schedule-legend--row">15:30</div>
-					<div class="schedule-legend--row">16:00</div>
-					<div class="schedule-legend--row">16:30</div>
-					<div class="schedule-legend--row">17:00</div>
-					<div class="schedule-legend--row">17:30</div>
-					<div class="schedule-legend--row">18:00</div>
-					<div class="schedule-legend--row">18:30</div>
-					<div class="schedule-legend--row">19:00</div>
-					<div class="schedule-legend--row">19:30</div>
-					<div class="schedule-legend--row">20:00</div>
-					<div class="schedule-legend--row">20:30</div>
-					<div class="schedule-legend--row">21:00</div>
-					<div class="schedule-legend--row">21:30</div>
-					<div class="schedule-legend--row">22:00</div>
+						<div class="schedule-legend--row">6:00AM</div>
+						<div class="schedule-legend--row">6:30AM</div>
+						<div class="schedule-legend--row">7:00AM</div>
+						<div class="schedule-legend--row">7:30AM</div>
+						<div class="schedule-legend--row">8:00AM</div>
+						<div class="schedule-legend--row">8:30AM</div>
+						<div class="schedule-legend--row">9:00AM</div>
+						<div class="schedule-legend--row">9:30AM</div>
+						<div class="schedule-legend--row">10:00AM</div>
+						<div class="schedule-legend--row">10:30AM</div>
+						<div class="schedule-legend--row">11:00AM</div>
+						<div class="schedule-legend--row">11:30AM</div>
+						<div class="schedule-legend--row">12:00PM</div>
+						<div class="schedule-legend--row">12:30PM</div>
+						<div class="schedule-legend--row">1:00PM</div>
+						<div class="schedule-legend--row">1:30PM</div>
+						<div class="schedule-legend--row">2:00PM</div>
+						<div class="schedule-legend--row">2:30PM</div>
+						<div class="schedule-legend--row">3:00PM</div>
+						<div class="schedule-legend--row">3:30PM</div>
+						<div class="schedule-legend--row">4:00PM</div>
+						<div class="schedule-legend--row">4:30PM</div>
+						<div class="schedule-legend--row">5:00PM</div>
+						<div class="schedule-legend--row">5:30PM</div>
+						<div class="schedule-legend--row">6:00PM</div>
+						<div class="schedule-legend--row">6:30PM</div>
+						<div class="schedule-legend--row">7:00PM</div>
+						<div class="schedule-legend--row">7:30PM</div>
+						<div class="schedule-legend--row">8:00PM</div>
+						<div class="schedule-legend--row">8:30PM</div>
+						<div class="schedule-legend--row">9:00PM</div>
+						<div class="schedule-legend--row">9:30PM</div>
+						<div class="schedule-legend--row">10:00PM</div>
 				</div>
 				<div class="schedule-col" id="Stadium Court">
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
+					<div data-time="6:00" data-court="Stadium Court" class="schedule-cell"></div>
+					<div data-time="6:30" data-court="Stadium Court" class="schedule-cell"></div>
+					<div data-time="7:00" data-court="Stadium Court" class="schedule-cell"></div>
+					<div data-time="7:30" data-court="Stadium Court" class="schedule-cell"></div>
+					<div data-time="8:00" data-court="Stadium Court" class="schedule-cell"></div>
+					<div data-time="8:30" data-court="Stadium Court" class="schedule-cell"></div>
+					<div data-time="9:00" data-court="Stadium Court" class="schedule-cell"></div>
+					<div data-time="9:30" data-court="Stadium Court" class="schedule-cell"></div>
+					<div data-time="10:00" data-court="Stadium Court" class="schedule-cell"></div>
+					<div data-time="10:30" data-court="Stadium Court" class="schedule-cell"></div>
+					<div data-time="11:00" data-court="Stadium Court" class="schedule-cell"></div>
+					<div data-time="11:30" data-court="Stadium Court" class="schedule-cell"></div>
+					<div data-time="12:00" data-court="Stadium Court" class="schedule-cell"></div>
+					<div data-time="12:30" data-court="Stadium Court" class="schedule-cell"></div>
+					<div data-time="13:00" data-court="Stadium Court" class="schedule-cell"></div>
+					<div data-time="13:30" data-court="Stadium Court" class="schedule-cell"></div>
+					<div data-time="14:00" data-court="Stadium Court" class="schedule-cell"></div>
+					<div data-time="14:30" data-court="Stadium Court" class="schedule-cell"></div>
+					<div data-time="15:00" data-court="Stadium Court" class="schedule-cell"></div>
+					<div data-time="15:30" data-court="Stadium Court" class="schedule-cell"></div>
+					<div data-time="16:00" data-court="Stadium Court" class="schedule-cell"></div>
+					<div data-time="16:30" data-court="Stadium Court" class="schedule-cell"></div>
+					<div data-time="17:00" data-court="Stadium Court" class="schedule-cell"></div>
+					<div data-time="17:30" data-court="Stadium Court" class="schedule-cell"></div>
+					<div data-time="18:00" data-court="Stadium Court" class="schedule-cell"></div>
+					<div data-time="18:30" data-court="Stadium Court" class="schedule-cell"></div>
+					<div data-time="19:00" data-court="Stadium Court" class="schedule-cell"></div>
+					<div data-time="19:30" data-court="Stadium Court" class="schedule-cell"></div>
+					<div data-time="20:00" data-court="Stadium Court" class="schedule-cell"></div>
+					<div data-time="20:30" data-court="Stadium Court" class="schedule-cell"></div>
+					<div data-time="21:00" data-court="Stadium Court" class="schedule-cell"></div>
+					<div data-time="21:30" data-court="Stadium Court" class="schedule-cell"></div>
 				</div>
 				<div class="schedule-col" id="Court 1">
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
+					<div data-time="6:00" data-court="Court 1" class="schedule-cell"></div>
+					<div data-time="6:30" data-court="Court 1" class="schedule-cell"></div>
+					<div data-time="7:00" data-court="Court 1" class="schedule-cell"></div>
+					<div data-time="7:30" data-court="Court 1" class="schedule-cell"></div>
+					<div data-time="8:00" data-court="Court 1" class="schedule-cell"></div>
+					<div data-time="8:30" data-court="Court 1" class="schedule-cell"></div>
+					<div data-time="9:00" data-court="Court 1" class="schedule-cell"></div>
+					<div data-time="9:30" data-court="Court 1" class="schedule-cell"></div>
+					<div data-time="10:00" data-court="Court 1" class="schedule-cell"></div>
+					<div data-time="10:30" data-court="Court 1" class="schedule-cell"></div>
+					<div data-time="11:00" data-court="Court 1" class="schedule-cell"></div>
+					<div data-time="11:30" data-court="Court 1" class="schedule-cell"></div>
+					<div data-time="12:00" data-court="Court 1" class="schedule-cell"></div>
+					<div data-time="12:30" data-court="Court 1" class="schedule-cell"></div>
+					<div data-time="13:00" data-court="Court 1" class="schedule-cell"></div>
+					<div data-time="13:30" data-court="Court 1" class="schedule-cell"></div>
+					<div data-time="14:00" data-court="Court 1" class="schedule-cell"></div>
+					<div data-time="14:30" data-court="Court 1" class="schedule-cell"></div>
+					<div data-time="15:00" data-court="Court 1" class="schedule-cell"></div>
+					<div data-time="15:30" data-court="Court 1" class="schedule-cell"></div>
+					<div data-time="16:00" data-court="Court 1" class="schedule-cell"></div>
+					<div data-time="16:30" data-court="Court 1" class="schedule-cell"></div>
+					<div data-time="17:00" data-court="Court 1" class="schedule-cell"></div>
+					<div data-time="17:30" data-court="Court 1" class="schedule-cell"></div>
+					<div data-time="18:00" data-court="Court 1" class="schedule-cell"></div>
+					<div data-time="18:30" data-court="Court 1" class="schedule-cell"></div>
+					<div data-time="19:00" data-court="Court 1" class="schedule-cell"></div>
+					<div data-time="19:30" data-court="Court 1" class="schedule-cell"></div>
+					<div data-time="20:00" data-court="Court 1" class="schedule-cell"></div>
+					<div data-time="20:30" data-court="Court 1" class="schedule-cell"></div>
+					<div data-time="21:00" data-court="Court 1" class="schedule-cell"></div>
+					<div data-time="21:30" data-court="Court 1" class="schedule-cell"></div>
 				</div>
 				<div class="schedule-col" id="Court 2">
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
+					<div data-time="6:00" data-court="Court 2" class="schedule-cell"></div>
+					<div data-time="6:30" data-court="Court 2" class="schedule-cell"></div>
+					<div data-time="7:00" data-court="Court 2" class="schedule-cell"></div>
+					<div data-time="7:30" data-court="Court 2" class="schedule-cell"></div>
+					<div data-time="8:00" data-court="Court 2" class="schedule-cell"></div>
+					<div data-time="8:30" data-court="Court 2" class="schedule-cell"></div>
+					<div data-time="9:00" data-court="Court 2" class="schedule-cell"></div>
+					<div data-time="9:30" data-court="Court 2" class="schedule-cell"></div>
+					<div data-time="10:00" data-court="Court 2" class="schedule-cell"></div>
+					<div data-time="10:30" data-court="Court 2" class="schedule-cell"></div>
+					<div data-time="11:00" data-court="Court 2" class="schedule-cell"></div>
+					<div data-time="11:30" data-court="Court 2" class="schedule-cell"></div>
+					<div data-time="12:00" data-court="Court 2" class="schedule-cell"></div>
+					<div data-time="12:30" data-court="Court 2" class="schedule-cell"></div>
+					<div data-time="13:00" data-court="Court 2" class="schedule-cell"></div>
+					<div data-time="13:30" data-court="Court 2" class="schedule-cell"></div>
+					<div data-time="14:00" data-court="Court 2" class="schedule-cell"></div>
+					<div data-time="14:30" data-court="Court 2" class="schedule-cell"></div>
+					<div data-time="15:00" data-court="Court 2" class="schedule-cell"></div>
+					<div data-time="15:30" data-court="Court 2" class="schedule-cell"></div>
+					<div data-time="16:00" data-court="Court 2" class="schedule-cell"></div>
+					<div data-time="16:30" data-court="Court 2" class="schedule-cell"></div>
+					<div data-time="17:00" data-court="Court 2" class="schedule-cell"></div>
+					<div data-time="17:30" data-court="Court 2" class="schedule-cell"></div>
+					<div data-time="18:00" data-court="Court 2" class="schedule-cell"></div>
+					<div data-time="18:30" data-court="Court 2" class="schedule-cell"></div>
+					<div data-time="19:00" data-court="Court 2" class="schedule-cell"></div>
+					<div data-time="19:30" data-court="Court 2" class="schedule-cell"></div>
+					<div data-time="20:00" data-court="Court 2" class="schedule-cell"></div>
+					<div data-time="20:30" data-court="Court 2" class="schedule-cell"></div>
+					<div data-time="21:00" data-court="Court 2" class="schedule-cell"></div>
+					<div data-time="21:30" data-court="Court 2" class="schedule-cell"></div>
 				</div>
 				<div class="schedule-col" id="Court 3">
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
+					<div data-time="6:00" data-court="Court 3" class="schedule-cell"></div>
+					<div data-time="6:30" data-court="Court 3" class="schedule-cell"></div>
+					<div data-time="7:00" data-court="Court 3" class="schedule-cell"></div>
+					<div data-time="7:30" data-court="Court 3" class="schedule-cell"></div>
+					<div data-time="8:00" data-court="Court 3" class="schedule-cell"></div>
+					<div data-time="8:30" data-court="Court 3" class="schedule-cell"></div>
+					<div data-time="9:00" data-court="Court 3" class="schedule-cell"></div>
+					<div data-time="9:30" data-court="Court 3" class="schedule-cell"></div>
+					<div data-time="10:00" data-court="Court 3" class="schedule-cell"></div>
+					<div data-time="10:30" data-court="Court 3" class="schedule-cell"></div>
+					<div data-time="11:00" data-court="Court 3" class="schedule-cell"></div>
+					<div data-time="11:30" data-court="Court 3" class="schedule-cell"></div>
+					<div data-time="12:00" data-court="Court 3" class="schedule-cell"></div>
+					<div data-time="12:30" data-court="Court 3" class="schedule-cell"></div>
+					<div data-time="13:00" data-court="Court 3" class="schedule-cell"></div>
+					<div data-time="13:30" data-court="Court 3" class="schedule-cell"></div>
+					<div data-time="14:00" data-court="Court 3" class="schedule-cell"></div>
+					<div data-time="14:30" data-court="Court 3" class="schedule-cell"></div>
+					<div data-time="15:00" data-court="Court 3" class="schedule-cell"></div>
+					<div data-time="15:30" data-court="Court 3" class="schedule-cell"></div>
+					<div data-time="16:00" data-court="Court 3" class="schedule-cell"></div>
+					<div data-time="16:30" data-court="Court 3" class="schedule-cell"></div>
+					<div data-time="17:00" data-court="Court 3" class="schedule-cell"></div>
+					<div data-time="17:30" data-court="Court 3" class="schedule-cell"></div>
+					<div data-time="18:00" data-court="Court 3" class="schedule-cell"></div>
+					<div data-time="18:30" data-court="Court 3" class="schedule-cell"></div>
+					<div data-time="19:00" data-court="Court 3" class="schedule-cell"></div>
+					<div data-time="19:30" data-court="Court 3" class="schedule-cell"></div>
+					<div data-time="20:00" data-court="Court 3" class="schedule-cell"></div>
+					<div data-time="20:30" data-court="Court 3" class="schedule-cell"></div>
+					<div data-time="21:00" data-court="Court 3" class="schedule-cell"></div>
+					<div data-time="21:30" data-court="Court 3" class="schedule-cell"></div>
 				</div>
 				<div class="schedule-col" id="Court 4">
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
+					<div data-time="6:00" data-court="Court 4" class="schedule-cell"></div>
+					<div data-time="6:30" data-court="Court 4" class="schedule-cell"></div>
+					<div data-time="7:00" data-court="Court 4" class="schedule-cell"></div>
+					<div data-time="7:30" data-court="Court 4" class="schedule-cell"></div>
+					<div data-time="8:00" data-court="Court 4" class="schedule-cell"></div>
+					<div data-time="8:30" data-court="Court 4" class="schedule-cell"></div>
+					<div data-time="9:00" data-court="Court 4" class="schedule-cell"></div>
+					<div data-time="9:30" data-court="Court 4" class="schedule-cell"></div>
+					<div data-time="10:00" data-court="Court 4" class="schedule-cell"></div>
+					<div data-time="10:30" data-court="Court 4" class="schedule-cell"></div>
+					<div data-time="11:00" data-court="Court 4" class="schedule-cell"></div>
+					<div data-time="11:30" data-court="Court 4" class="schedule-cell"></div>
+					<div data-time="12:00" data-court="Court 4" class="schedule-cell"></div>
+					<div data-time="12:30" data-court="Court 4" class="schedule-cell"></div>
+					<div data-time="13:00" data-court="Court 4" class="schedule-cell"></div>
+					<div data-time="13:30" data-court="Court 4" class="schedule-cell"></div>
+					<div data-time="14:00" data-court="Court 4" class="schedule-cell"></div>
+					<div data-time="14:30" data-court="Court 4" class="schedule-cell"></div>
+					<div data-time="15:00" data-court="Court 4" class="schedule-cell"></div>
+					<div data-time="15:30" data-court="Court 4" class="schedule-cell"></div>
+					<div data-time="16:00" data-court="Court 4" class="schedule-cell"></div>
+					<div data-time="16:30" data-court="Court 4" class="schedule-cell"></div>
+					<div data-time="17:00" data-court="Court 4" class="schedule-cell"></div>
+					<div data-time="17:30" data-court="Court 4" class="schedule-cell"></div>
+					<div data-time="18:00" data-court="Court 4" class="schedule-cell"></div>
+					<div data-time="18:30" data-court="Court 4" class="schedule-cell"></div>
+					<div data-time="19:00" data-court="Court 4" class="schedule-cell"></div>
+					<div data-time="19:30" data-court="Court 4" class="schedule-cell"></div>
+					<div data-time="20:00" data-court="Court 4" class="schedule-cell"></div>
+					<div data-time="20:30" data-court="Court 4" class="schedule-cell"></div>
+					<div data-time="21:00" data-court="Court 4" class="schedule-cell"></div>
+					<div data-time="21:30" data-court="Court 4" class="schedule-cell"></div>
 				</div>
 				<div class="schedule-col" id="Court 5">
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
+					<div data-time="6:00" data-court="Court 5" class="schedule-cell"></div>
+					<div data-time="6:30" data-court="Court 5" class="schedule-cell"></div>
+					<div data-time="7:00" data-court="Court 5" class="schedule-cell"></div>
+					<div data-time="7:30" data-court="Court 5" class="schedule-cell"></div>
+					<div data-time="8:00" data-court="Court 5" class="schedule-cell"></div>
+					<div data-time="8:30" data-court="Court 5" class="schedule-cell"></div>
+					<div data-time="9:00" data-court="Court 5" class="schedule-cell"></div>
+					<div data-time="9:30" data-court="Court 5" class="schedule-cell"></div>
+					<div data-time="10:00" data-court="Court 5" class="schedule-cell"></div>
+					<div data-time="10:30" data-court="Court 5" class="schedule-cell"></div>
+					<div data-time="11:00" data-court="Court 5" class="schedule-cell"></div>
+					<div data-time="11:30" data-court="Court 5" class="schedule-cell"></div>
+					<div data-time="12:00" data-court="Court 5" class="schedule-cell"></div>
+					<div data-time="12:30" data-court="Court 5" class="schedule-cell"></div>
+					<div data-time="13:00" data-court="Court 5" class="schedule-cell"></div>
+					<div data-time="13:30" data-court="Court 5" class="schedule-cell"></div>
+					<div data-time="14:00" data-court="Court 5" class="schedule-cell"></div>
+					<div data-time="14:30" data-court="Court 5" class="schedule-cell"></div>
+					<div data-time="15:00" data-court="Court 5" class="schedule-cell"></div>
+					<div data-time="15:30" data-court="Court 5" class="schedule-cell"></div>
+					<div data-time="16:00" data-court="Court 5" class="schedule-cell"></div>
+					<div data-time="16:30" data-court="Court 5" class="schedule-cell"></div>
+					<div data-time="17:00" data-court="Court 5" class="schedule-cell"></div>
+					<div data-time="17:30" data-court="Court 5" class="schedule-cell"></div>
+					<div data-time="18:00" data-court="Court 5" class="schedule-cell"></div>
+					<div data-time="18:30" data-court="Court 5" class="schedule-cell"></div>
+					<div data-time="19:00" data-court="Court 5" class="schedule-cell"></div>
+					<div data-time="19:30" data-court="Court 5" class="schedule-cell"></div>
+					<div data-time="20:00" data-court="Court 5" class="schedule-cell"></div>
+					<div data-time="20:30" data-court="Court 5" class="schedule-cell"></div>
+					<div data-time="21:00" data-court="Court 5" class="schedule-cell"></div>
+					<div data-time="21:30" data-court="Court 5" class="schedule-cell"></div>
 				</div>
 				<div class="schedule-col" id="Court 6">
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
+					<div data-time="6:00" data-court="Court 6" class="schedule-cell"></div>
+					<div data-time="6:30" data-court="Court 6" class="schedule-cell"></div>
+					<div data-time="7:00" data-court="Court 6" class="schedule-cell"></div>
+					<div data-time="7:30" data-court="Court 6" class="schedule-cell"></div>
+					<div data-time="8:00" data-court="Court 6" class="schedule-cell"></div>
+					<div data-time="8:30" data-court="Court 6" class="schedule-cell"></div>
+					<div data-time="9:00" data-court="Court 6" class="schedule-cell"></div>
+					<div data-time="9:30" data-court="Court 6" class="schedule-cell"></div>
+					<div data-time="10:00" data-court="Court 6" class="schedule-cell"></div>
+					<div data-time="10:30" data-court="Court 6" class="schedule-cell"></div>
+					<div data-time="11:00" data-court="Court 6" class="schedule-cell"></div>
+					<div data-time="11:30" data-court="Court 6" class="schedule-cell"></div>
+					<div data-time="12:00" data-court="Court 6" class="schedule-cell"></div>
+					<div data-time="12:30" data-court="Court 6" class="schedule-cell"></div>
+					<div data-time="13:00" data-court="Court 6" class="schedule-cell"></div>
+					<div data-time="13:30" data-court="Court 6" class="schedule-cell"></div>
+					<div data-time="14:00" data-court="Court 6" class="schedule-cell"></div>
+					<div data-time="14:30" data-court="Court 6" class="schedule-cell"></div>
+					<div data-time="15:00" data-court="Court 6" class="schedule-cell"></div>
+					<div data-time="15:30" data-court="Court 6" class="schedule-cell"></div>
+					<div data-time="16:00" data-court="Court 6" class="schedule-cell"></div>
+					<div data-time="16:30" data-court="Court 6" class="schedule-cell"></div>
+					<div data-time="17:00" data-court="Court 6" class="schedule-cell"></div>
+					<div data-time="17:30" data-court="Court 6" class="schedule-cell"></div>
+					<div data-time="18:00" data-court="Court 6" class="schedule-cell"></div>
+					<div data-time="18:30" data-court="Court 6" class="schedule-cell"></div>
+					<div data-time="19:00" data-court="Court 6" class="schedule-cell"></div>
+					<div data-time="19:30" data-court="Court 6" class="schedule-cell"></div>
+					<div data-time="20:00" data-court="Court 6" class="schedule-cell"></div>
+					<div data-time="20:30" data-court="Court 6" class="schedule-cell"></div>
+					<div data-time="21:00" data-court="Court 6" class="schedule-cell"></div>
+					<div data-time="21:30" data-court="Court 6" class="schedule-cell"></div>
 				</div>
 				<div class="schedule-col" id="Court 7">
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
-					<div class="schedule-cell" onclick="handleCellClick(this)"></div>
+					<div data-time="6:00" data-court="Court 7" class="schedule-cell"></div>
+					<div data-time="6:30" data-court="Court 7" class="schedule-cell"></div>
+					<div data-time="7:00" data-court="Court 7" class="schedule-cell"></div>
+					<div data-time="7:30" data-court="Court 7" class="schedule-cell"></div>
+					<div data-time="8:00" data-court="Court 7" class="schedule-cell"></div>
+					<div data-time="8:30" data-court="Court 7" class="schedule-cell"></div>
+					<div data-time="9:00" data-court="Court 7" class="schedule-cell"></div>
+					<div data-time="9:30" data-court="Court 7" class="schedule-cell"></div>
+					<div data-time="10:00" data-court="Court 7" class="schedule-cell"></div>
+					<div data-time="10:30" data-court="Court 7" class="schedule-cell"></div>
+					<div data-time="11:00" data-court="Court 7" class="schedule-cell"></div>
+					<div data-time="11:30" data-court="Court 7" class="schedule-cell"></div>
+					<div data-time="12:00" data-court="Court 7" class="schedule-cell"></div>
+					<div data-time="12:30" data-court="Court 7" class="schedule-cell"></div>
+					<div data-time="13:00" data-court="Court 7" class="schedule-cell"></div>
+					<div data-time="13:30" data-court="Court 7" class="schedule-cell"></div>
+					<div data-time="14:00" data-court="Court 7" class="schedule-cell"></div>
+					<div data-time="14:30" data-court="Court 7" class="schedule-cell"></div>
+					<div data-time="15:00" data-court="Court 7" class="schedule-cell"></div>
+					<div data-time="15:30" data-court="Court 7" class="schedule-cell"></div>
+					<div data-time="16:00" data-court="Court 7" class="schedule-cell"></div>
+					<div data-time="16:30" data-court="Court 7" class="schedule-cell"></div>
+					<div data-time="17:00" data-court="Court 7" class="schedule-cell"></div>
+					<div data-time="17:30" data-court="Court 7" class="schedule-cell"></div>
+					<div data-time="18:00" data-court="Court 7" class="schedule-cell"></div>
+					<div data-time="18:30" data-court="Court 7" class="schedule-cell"></div>
+					<div data-time="19:00" data-court="Court 7" class="schedule-cell"></div>
+					<div data-time="19:30" data-court="Court 7" class="schedule-cell"></div>
+					<div data-time="20:00" data-court="Court 7" class="schedule-cell"></div>
+					<div data-time="20:30" data-court="Court 7" class="schedule-cell"></div>
+					<div data-time="21:00" data-court="Court 7" class="schedule-cell"></div>
+					<div data-time="21:30" data-court="Court 7" class="schedule-cell"></div>
 				</div>
 			</div>
 		</div>

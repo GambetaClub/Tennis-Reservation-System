@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
 	var listView = document.querySelector('.list-view')
 	var gridView = document.querySelector('.grid-view')
-	var newProject = document.querySelector('.add-btn')
+	var newActivity = document.querySelector('.add-btn')
 	var projectsList = document.querySelector('.project-boxes')
 
 	listView.addEventListener('click', function () {
@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		projectsList.classList.add('jsGridView')
 	})
 
-	newProject.addEventListener('click', function () {
+	newActivity.addEventListener('click', function () {
 		const swalWithBootstrapButtons = Swal.mixin({
 			customClass: {
 				confirmButton: 'btn btn-success',

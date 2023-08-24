@@ -44,11 +44,11 @@
         </div>
         <div class="row justify-content-center">
             <div class="form-group col-md-3">
-                {{ form.capacity.label }} 
-                {{ form.capacity }}
-                {% if form.capacity.errors %}
+                {{ form.assigned_pros.label }} 
+                {{ form.assigned_pros }}
+                {% if form.assigned_pros.errors %}
                 <span class="form-error" role="alert">
-                    {{ form.capacity.errors }}
+                    {{ form.assigned_pros.errors }}
                 </span>
                 {% endif %}
             </div>
@@ -57,6 +57,17 @@
                 {% if form.court.errors %}
                 <span class="form-error" role="alert">
                     {{ form.court.errors }}
+                </span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="form-group col-md-6">
+                {{ form.capacity.label }} 
+                {{ form.capacity }}
+                {% if form.capacity.errors %}
+                <span class="form-error" role="alert">
+                    {{ form.capacity.errors }}
                 </span>
                 {% endif %}
             </div>

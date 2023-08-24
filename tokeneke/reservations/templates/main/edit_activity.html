@@ -101,12 +101,30 @@
     </div>
 </form>
 <div class="row justify-content-center">
-    <ul class="activity_dates">
-        {% for date in dates %}
-        <li>
-            <a href="{% url 'edit_date' date.id %}">{{ date }}</a>
-        </li>
-        {% endfor %}
-    </ul>
+    <table class="form-table">
+        <h4>Dates</h4>
+        <thead>
+          <tr>
+            <th scope="col">Date</th>
+            <th scope="col">Time</th>
+            <th scope="col">Courts</th>
+            <th scope="col">Pros</th>
+            <th scope="col">Participants</th>
+            <th scope="col">Capacity</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for date in dates %}
+            <tr class="clickable-row" data-href="{% url 'edit_date' date.id %}">
+                <td data-label="Date">{{ date.datetime_start|date:"D, M d, Y" }}</td>
+                <td data-label="Time">{{ date.datetime_start|time:"h:i A" }} - {{ date.datetime_end|time:"h:i A" }}</td>
+                <td data-label="Courts">{{date.print_courts}}</td>
+                <td data-label="Pros">{{date.print_pros}}</td>
+                <td data-label="Participants">{{date.participants.count}}</td>
+                <td data-label="Capacity">{{date.capacity}}</td>
+            </tr>
+            {% endfor %}    
+        </tbody> 
+      </table>
 </div>
 {% endblock content %}

@@ -5,13 +5,13 @@ from django.contrib import messages
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.shortcuts import get_object_or_404
-import copy
+from .exceptions import *
 from django.http import HttpResponseBadRequest
-from django.core.exceptions import ValidationError
 from django.http import JsonResponse
-from .models import Event, Activity, Date, Participation, Court
+from .models import Event, Activity, Date, Participation, Court, Member
 from datetime import date as datetimedate
 from datetime import datetime
+from django.utils.timezone import timedelta
 import json
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -148,7 +148,7 @@ def create_activity(request):
             messages.success(
                 request, 'You created the activity successfully.')
             return redirect('home')
-        except ValidationError as e:
+        except ActivityCreationError as e:
             messages.error(request, e)
     return render(request, 'main/create_activity.html', {'form': form})
 
@@ -190,7 +190,7 @@ def edit_activity(request, activity_id):
             messages.success(
                 request, f"You edited the activity: {activity.title}.")
             return redirect('home')
-        except ValueError as e:
+        except ActivityUpdateError as e:
             messages.error(request, e)
     return render(request, 'main/edit_activity.html', {
         'event': activity.event,
@@ -418,4 +418,38 @@ def calendar_view(request, date):
         dates_list.append(date_dict)
 
     dates_json = json.dumps(dates_list)
-    return render(request, 'main/calendar.html', {'dates': dates_json})
+    return render(request, 'main/calendar.html', {'date': filter_date, 'dates': dates_json})
+
+
+def calculate_datetime_range(date_str, time_str, duration_minutes):
+    # Parse the input date and time strings
+    date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+    time_obj = datetime.strptime(time_str, '%H:%M')
+
+    # Calculate the datetime_start using the parsed date and time
+    datetime_start = date_obj.replace(
+        hour=time_obj.hour, minute=time_obj.minute)
+
+    # Calculate the datetime_end by adding the duration in minutes
+    datetime_end = datetime_start + timedelta(minutes=int(duration_minutes))
+
+    return datetime_start, datetime_end
+
+
+def get_available_pros(request):
+    # Get the selected time from the request
+    date = request.GET.get('date')
+    time = request.GET.get('time')
+    duration = request.GET.get('duration')
+    datetime_start, datetime_end = calculate_datetime_range(
+        date, time, duration)
+
+    # Find the Pros (Members) who do not have a Participation in overlapping Dates
+    available_pros = Member.get_available_pros(datetime_start, datetime_end)
+
+    # Convert the queryset to a list of dictionaries
+    pros_list = [{'id': pro.id, 'name': str(pro)} for pro in available_pros]
+
+    print(pros_list)
+
+    return JsonResponse({'pros': pros_list})

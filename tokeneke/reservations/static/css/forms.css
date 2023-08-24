@@ -1,12 +1,90 @@
+table.form-table {
+    border: 1px solid #ccc;
+    border-collapse: collapse;
+    margin: 0 10%;
+    padding: 0;
+    width: 100%;
+    table-layout: fixed;
+}
+table.form-table caption {
+    font-size: 1.5em;
+    margin: .5em 0 .75em;
+}
+table.form-table tr {
+    background-color: #ffff;
+    border: 1px solid #ddd;
+    padding: .35em;
+}
+table.form-table th, table.form-table td {
+    padding: .625em;
+    text-align: center;
+}
+table.form-table th {
+    font-size: .85em;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+}
+
+.clickable-row {
+    transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease, border 0.3s ease; /* Add transition properties */
+    position: relative; /* Add relative positioning */
+    z-index: 1; /* Set a default z-index value */
+}
+
+.clickable-row:hover {
+    background-color: #f5f5f5; 
+    cursor: pointer;
+    z-index: 2; /* Increase the z-index on hover to bring the element to the front */
+    transform: scale(1.05); /* Add a scaling effect on hover */
+}
+
+@media screen and (max-width: 600px) {
+    table.form-table {
+        border: 0;
+   }
+    table.form-table caption {
+        font-size: 1.3em;
+   }
+    table.form-table thead {
+        border: none;
+        clip: rect(0 0 0 0);
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        padding: 0;
+        position: absolute;
+        width: 1px;
+   }
+    table.form-table tr {
+        border-bottom: 3px solid #ddd;
+        display: block;
+        margin-bottom: .625em;
+   }
+    table.form-table td {
+        border-bottom: 1px solid #ddd;
+        display: block;
+        font-size: .8em;
+        text-align: right;
+   }
+    table.form-table td::before {
+       /* * aria-label has no advantage, it won't be read inside a table.form-table content: attr(aria-label);
+        */
+        content: attr(data-label);
+        float: left;
+        font-weight: bold;
+        text-transform: uppercase;
+   }
+    table.form-table td:last-child {
+        border-bottom: 0;
+   }
+}
 .form-group.error input{
     border-color: #dc3545 !important;
 }
-
 .form-group.error input:focus{
     border-color: #dc3545 !important;
     box-shadow: 60px -16px #dc3545;
 }
-
 .form-error {
-    color: #dc3545
+    color: #dc3545 
 }

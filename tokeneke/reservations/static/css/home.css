@@ -530,6 +530,12 @@ a {
   transition: 0.2s;
 }
 
+
+.project-box-wrapper:hover {
+  z-index: 2; /* Increase the z-index on hover to bring the element to the front */
+  transform: scale(1.05); /* Add a scaling effect on hover */
+}
+
 .project-btn-more {
   padding: 0;
   height: 14px;
@@ -642,11 +648,18 @@ a {
   justify-content: center;
   align-items: center;
   padding: 0;
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease, border 0.3s ease; /* Add transition properties */
 }
 
 .add-participant i {
   font-size: 20px;
   margin-top: 5px;
+}
+
+.add-participant:hover {
+  cursor: pointer;
+  z-index: 2; /* Increase the z-index on hover to bring the element to the front */
+  transform: scale(1.30); /* Add a scaling effect on hover */
 }
 
 .days-left {
@@ -659,6 +672,14 @@ a {
   padding: 6px 16px;
   font-weight: 700;
   color: var(--club-color);
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease, border 0.3s ease; /* Add transition properties */
+
+}
+
+.days-left:hover {
+  cursor: pointer;
+  z-index: 2; /* Increase the z-index on hover to bring the element to the front */
+  transform: scale(1.10); /* Add a scaling effect on hover */
 }
 
 .mode-switch.active .moon {

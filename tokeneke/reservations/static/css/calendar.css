@@ -2,6 +2,25 @@ body {
 	padding: 1rem;
 }
 
+.app-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	width: 100%;
+	padding: 16px 24px;
+	position: relative;
+}
+.app-header-left, .app-header-right {
+	display: flex;
+	align-items: center;
+}
+.app-header-left {
+	flex-grow: 1;
+}
+.app-header-right button {
+	margin-left: 10px;
+}
+
 .panel {
 	width: 100%;
 	max-width: 1008px;
@@ -48,7 +67,7 @@ body {
 }
 
 .header-legend {
-	width: 4rem;
+	width: 80px;
 	background: #f4f4f5;
 	border-right: 1px solid #dcdde0;
 	display: flex;
@@ -75,7 +94,7 @@ body {
 }
 
 .schedule-legend {
-	width: 4rem;
+	width: 80px;
 	background: #f4f4f5;
 	margin-top: -21px;
 	border-right: 1px solid #dcdde0;

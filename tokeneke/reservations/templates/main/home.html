@@ -24,7 +24,7 @@
             </div>
             <div class="app-header-right">
                 {% if user.is_staff %}
-                    <button class="add-btn" title="Add New Project">
+                    <button class="add-btn" title="Add New Activity">
                         <i class='bx bx-plus'></i>
                     </button>
                 {% endif %}
@@ -91,16 +91,16 @@
                                         <a href="{% url 'event' activity.event.id %}"></a>
                                         <p class="box-content-header">{{ activity.get_title }}</p>
                                         <p class="box-content-subheader">
-                                            {{activity.print_courts}} <br>
-                                            {{activity.get_formatted_duration}} <br>
-                                            {{activity.event.get_team_display}}
+                                            {{activity.get_next_date.print_courts}} <br>
+                                            {{activity.get_next_date.get_formatted_duration}} <br>
+                                            {{activity.get_next_date.print_pros}}
                                         </p>
                                     </div>
                                     <div class="box-progress-wrapper">
                                         <p class="box-progress-header">
-                                            {% if activity.event.get_fut_date_rem_spots < 1 %}
+                                            {% if activity.get_next_date.get_rem_spots < 1 %}
                                                 Full
-                                            {% elif activity.event.get_fut_date_rem_spots == 1 %}
+                                            {% elif activity.get_next_date.get_rem_spots == 1 %}
                                                 {{ activity.get_next_date.get_rem_spots }} spot left
                                             {% else %}
                                                 {{ activity.get_next_date.get_rem_spots }} spots left
@@ -123,7 +123,7 @@
                                         </div>
                                         <div class="days-left">
                                             <a href="{% url 'event_participants' activity.event.id %}">
-                                                {{ activity.print_remaining_days }}
+                                                {{ activity.get_next_date.print_remaining_days }}
                                             </a>
                                         </div>
                                     </div>
@@ -146,18 +146,24 @@
                                         <a href="{% url 'edit_activity' activity.id %}"></a>
                                         <p class="box-content-header">{{ activity.get_type_display }}</p>
                                         <p class="box-content-subheader">
-                                            {{activity.print_courts}} <br>
-                                            {{activity.get_formatted_duration}} <br>
+                                            {{activity.get_next_date.print_courts}} <br>
+                                            {{activity.get_next_date.get_formatted_duration}} <br>
                                             {% if activity.type == 'private' %}
-                                                Pro: {{activity.get_pro}}
+                                                Pro: {{activity.get_next_date.get_pro}}
                                             {% else %}
-                                                Host: {{activity.get_host}}
+                                                Host: {{activity.get_next_date.get_host}}
                                             {% endif %}
                                         </p>
                                     </div>
                                     <div class="box-progress-wrapper">
                                         <p class="box-progress-header">
-                                            NUMERO 4
+                                            {% if activity.get_next_date.get_rem_spots < 1 %}
+                                                Full
+                                            {% elif activity.get_next_date.get_rem_spots == 1 %}
+                                                {{ activity.get_next_date.get_rem_spots }} spot left
+                                            {% else %}
+                                                {{ activity.get_next_date.get_rem_spots }} spots left
+                                            {% endif %}
                                         </p>
                                         <div class="box-progress-bar">
                                             <span class="box-progress" style="width: {{ activity.get_next_date.get_cap_pct }};"></span>
@@ -176,7 +182,7 @@
                                         </div>
                                         <div class="days-left">
                                             <a href="#">
-                                                {{ activity.print_remaining_days }}
+                                                {{ activity.next_date.print_remaining_days }}
                                             </a>
                                         </div>
                                     </div>

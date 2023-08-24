@@ -17,6 +17,8 @@
 
 * In Date.get_courts() implement a way that the function takes as an argument if it's a clinic or not.
 
+* Add different colors for each type of activity. If there is a pro assigned. Also, give a color to each pro.
+
 * Create Test for models: 
     Member: Done
     Event: Done

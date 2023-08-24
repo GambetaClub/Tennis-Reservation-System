@@ -7,6 +7,7 @@ from .exceptions import *
 from django.utils.timezone import make_aware
 from django.utils import timezone
 import math
+from django.db.models import Q
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from datetime import datetime, time
 
@@ -67,15 +68,28 @@ class Member(AbstractBaseUser, PermissionsMixin):
     team = models.CharField(max_length=7, choices=TEAM_CHOICES, blank=True)
     profile_pic = models.ImageField(
         default='profile_pics/default.jpeg', upload_to='profile_pics')
-    is_playing = models.BooleanField(default=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
+    is_pro = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
 
     objects = CustomAccountManager()
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', 'last_name', 'gender']
+
+    @staticmethod
+    def get_available_pros(datetime_start, datetime_end):
+        overlapping_dates = Date.objects.filter(
+            Q(datetime_start__lt=datetime_end) &
+            Q(datetime_end__gt=datetime_start)
+        )
+        # Find the Pros (Members) who do not have a Participation in overlapping Dates
+        return Member.objects.filter(
+            is_pro=True
+        ).exclude(
+            participation__date__in=overlapping_dates
+        ).distinct()
 
     def __str__(self):
         if self.first_name and self.last_name:
@@ -187,6 +201,7 @@ class Event(models.Model):
 
 
 class Court(models.Model):
+    # Make sure that the HTML in calendar matches these options
     STADIUM_COURT = 'Stadium Court'
     COURT_1 = 'Court 1'
     COURT_2 = 'Court 2'
@@ -231,6 +246,7 @@ class Activity(models.Model):
     TYPE_CLINIC = 'clinic'
     TYPE_CHOICES = (
         (TYPE_PRIVATE, 'Private Lesson'),
+        (TYPE_PRIVATE, 'Semi-Private Lesson'),
         (TYPE_COURT, 'Court Reservation'),
         (TYPE_CLINIC, 'Clinic')
     )
@@ -370,6 +386,16 @@ class Activity(models.Model):
     def get_formatted_datetime(self, date, hour, minute):
         return make_aware(date.replace(hour=hour, minute=minute, second=0, microsecond=0))
 
+    def get_rules(self):
+        formatted_rules = []
+
+        for rule in self.recurrences.rrules:
+            formatted_rules.append(rule.to_text())
+
+        rules_as_string = "\n".join(formatted_rules)
+
+        return rules_as_string
+
     def is_clinic(self):
         return self.type == Activity.TYPE_CLINIC
 
@@ -408,49 +434,6 @@ class Activity(models.Model):
             if host:
                 return host.member
         return None
-
-    def get_pro(self):
-        if self.get_next_date():
-            return self.get_next_date().get_pro()
-
-    def get_courts(self):
-        if self.get_next_date():
-            return self.get_next_date().court.all()
-
-    def print_courts(self):
-        if self.get_courts():
-            courts_names = [court.name for court in self.get_courts()]
-            return ', '.join(courts_names)
-
-    def get_formatted_duration(self):
-        if self.get_next_date():
-            return self.get_next_date().get_formatted_duration()
-
-    def print_remaining_days(self):
-        # Returns a string of the remaining days for the fut Date
-        try:
-            next_date = self.get_next_date().datetime_start.date()
-            today = timezone.now().date()
-
-            # Calculate the difference in days
-            time_difference = next_date - today
-            remaining_days = time_difference.days
-
-            if remaining_days < 0:
-                if remaining_days == -1:
-                    remaining_days = "Yesterday"
-                else:
-                    remaining_days = str(abs(remaining_days)) + " days ago"
-            elif remaining_days == 0:
-                remaining_days = 'Today'
-            elif remaining_days == 1:
-                remaining_days = 'Tomorrow'
-            else:
-                remaining_days = str(remaining_days) + " days"
-
-            return remaining_days
-        except:
-            return "No more activities"
 
     def get_dates_desc(self):
         # Returns a string with the description of the fut or past dates of the activity
@@ -543,6 +526,11 @@ class Date(models.Model):
         Member, through='Participation', blank=True)
     capacity = models.IntegerField("Capacity", default=MAX_P_P_COURT)
     court = models.ManyToManyField(Court)
+    assigned_pros = models.ManyToManyField(
+        Member,
+        related_name='assigned_dates',
+        blank=True,
+    )
 
     REQUIRED_FIELDS = ['activity', 'datetime_start',
                        'datetime_end', 'capacity', 'court']
@@ -551,11 +539,11 @@ class Date(models.Model):
         with transaction.atomic():
             if self.pk is None:
                 num_courts_needed = math.ceil(self.capacity / MAX_P_P_COURT)
-                courts = Date.get_courts(datetime_start=self.datetime_start,
-                                         datetime_end=self.datetime_end,
-                                         num_courts_needed=num_courts_needed)
+                super(Date, self).save(*args, **kwargs)
+                courts = Date.get_open_courts(datetime_start=self.datetime_start,
+                                              datetime_end=self.datetime_end,
+                                              num_courts_needed=num_courts_needed)
                 if courts:
-                    super(Date, self).save(*args, **kwargs)
                     self.court.add(*courts)
                 else:
                     raise DateCreationError(
@@ -568,8 +556,19 @@ class Date(models.Model):
                     raise DateUpdateError(
                         f"Could not update the Date {str(self)}: {ve}.")
 
+    def add_pro(self, pro):
+        if pro.is_pro:
+            self.assigned_pros.add(pro)
+        else:
+            # Raise an exception or handle the case where a non-pro is being added
+            raise ValueError(
+                "Only Pro members can be assigned as pros to a date.")
+
+    def remove_pro(self, pro):
+        self.assigned_pros.remove(pro)
+
     @staticmethod
-    def get_courts(datetime_start, datetime_end, num_courts_needed):
+    def get_open_courts(datetime_start, datetime_end, num_courts_needed):
         open_courts = Court.get_open_courts(datetime_start, datetime_end)
         if len(open_courts) < num_courts_needed:
             return None
@@ -636,6 +635,27 @@ class Date(models.Model):
     def print_date(self):
         return self.get_datetime_start().strftime('%A, %b %-d - %I:%M%p')
 
+    def print_remaining_days(self):
+        date = self.datetime_start.date()
+        today = timezone.now().date()
+
+        # Calculate the difference in days
+        time_difference = date - today
+        remaining_days = time_difference.days
+
+        if remaining_days < 0:
+            if remaining_days == -1:
+                remaining_days = "Yesterday"
+            else:
+                remaining_days = str(abs(remaining_days)) + " days ago"
+        elif remaining_days == 0:
+            remaining_days = 'Today'
+        elif remaining_days == 1:
+            remaining_days = 'Tomorrow'
+        else:
+            remaining_days = str(remaining_days) + " days"
+        return remaining_days
+
     def is_registrable(self):
         time_until = self.datetime_start - timezone.now()
         if time_until < timezone.timedelta(hours=24):
@@ -667,6 +687,15 @@ class Date(models.Model):
 
     def get_activity(self):
         return Activity.objects.get(id=self.id)
+
+    def get_courts(self):
+        return self.court.all()
+
+    def print_courts(self):
+        courts = self.get_courts()
+        if courts:
+            courts_names = [court.name for court in courts]
+            return ', '.join(courts_names)
 
     def get_all_parts(self):
         # Returns a list with all the participants with the ones that first registered first
@@ -718,8 +747,14 @@ class Date(models.Model):
         else:
             return '{:.0%}'.format(1 - self.get_rem_spots() / self.get_capacity())
 
-    def get_pro(self):
-        return "Roger Federer"
+    def print_pros(self):
+        pros = self.assigned_pros.all()
+        if pros:
+            pros_names = [str(pro) for pro in pros]
+            pros_string = ', '.join(pros_names)
+            return pros_string
+        else:
+            return "No Pro Assigned"
 
 
 class Participation(models.Model):

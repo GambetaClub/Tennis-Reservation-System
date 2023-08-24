@@ -101,8 +101,16 @@ class CreateDateForm(forms.ModelForm):
             'datetime_end': TextInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
             'capacity': TextInput(attrs={'type': 'number', 'class': 'form-control'}),
             'court':  forms.CheckboxSelectMultiple(),
+            'assigned_pros': forms.CheckboxSelectMultiple(),
             'participants': forms.CheckboxSelectMultiple(),
         }
+
+    def __init__(self, *args, **kwargs):
+        super(CreateDateForm, self).__init__(*args, **kwargs)
+
+        # Update the queryset for the assigned_pros field to show only pros
+        self.fields['assigned_pros'].queryset = Member.objects.filter(
+            is_pro=True)
 
     def clean(self):
         cleaned_data = super().clean()

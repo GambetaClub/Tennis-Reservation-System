@@ -56,18 +56,30 @@
 	</div>
 </form>
 <div class="row justify-content-center">
-	{% if activities %}
-	Activities:
-	{% for activity in activities %}
-		<a href="{% url 'edit_activity' activity.id %}">{{ activity }}</a>
-		{% if activity.is_active %}
-		<i class="bx bx-check-circle"></i>
-		{% else %}
-		<i class="bx bxs-no-entry"></i>
-		{% endif %}
-	{% endfor %}
-	{% else %}
-	No activities
-	{% endif %}
+    <table class="form-table">
+        <h4>Activities</h4>
+        <thead>
+          <tr>
+            <th scope="col">Title</th>
+            <th scope="col">Recurrences</th>
+            <th scope="col">Time</th>
+			<th scope="col">Dates</th>
+            <th scope="col">Capacity</th>
+			<th scope="col">Active</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for activity in activities %}
+            <tr class="clickable-row" data-href="{% url 'edit_activity' activity.id %}">
+                <td data-label="Title">{{ activity.title }}</td>
+                <td data-label="Recurrences">{{activity.get_rules}}</td>
+                <td data-label="Time">{{ activity.start_time|time:"h:i A" }} - {{ activity.end_time|time:"h:i A" }}</td>
+				<td data-label="Dates">{{activity.date_set.count}}</td>
+                <td data-label="Capacity">{{activity.capacity}}</td>
+                <td data-label="Active">{{activity.is_active}}</td>
+            </tr>
+            {% endfor %}    
+        </tbody> 
+      </table>
 </div>
 {% endblock content %}
