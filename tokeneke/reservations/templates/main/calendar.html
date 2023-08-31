@@ -8,6 +8,7 @@
 {% endblock head %}
 {% block content %}
 <h4 class="date-display">{{ date|date:"l d, F Y" }}</h4>
+{% csrf_token %}
 <div class="panel">
 	<div class="schedule" id="schedule">
 		<div class="schedule-header">

@@ -33,8 +33,10 @@ urlpatterns = [
     path('event/<int:event_id>/participants',
          views.event_participants, name='event_participants'),
     path('add_participant', views.add_participant, name='add_participant'),
-    path('get_available_pros/', views.get_available_pros,
+    path('get_available_pros', views.get_available_pros,
          name='get_available_pros'),
+    path('calendar/create_activity',
+         views.calendar_create_activity, name='calendar_create_activity'),
     path('my_activities', views.my_activities, name='my_activities'),
     path('calendar/', views.calendar_resolver, name='calendar'),
     path('calendar/<str:date>', views.calendar_view, name='calendar_view')

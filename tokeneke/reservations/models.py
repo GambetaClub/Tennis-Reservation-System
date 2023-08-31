@@ -7,6 +7,7 @@ from .exceptions import *
 from django.utils.timezone import make_aware
 from django.utils import timezone
 import math
+from recurrence.fields import RecurrenceField
 from django.db.models import Q
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from datetime import datetime, time
@@ -62,7 +63,8 @@ class Member(AbstractBaseUser, PermissionsMixin):
     member_n = models.CharField(_('Member #'), max_length=10, blank=True)
     first_name = models.CharField(max_length=150, blank=True)
     last_name = models.CharField(max_length=150, blank=True)
-    level = models.IntegerField(validators=[validate_percentage], null=True)
+    level = models.IntegerField(
+        validators=[validate_percentage], null=True, default=50)
     start_date = models.DateTimeField(default=timezone.now)
     gender = models.CharField(max_length=7, choices=GENDER_CHOICES)
     team = models.CharField(max_length=7, choices=TEAM_CHOICES, blank=True)
@@ -71,8 +73,8 @@ class Member(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_pro = models.BooleanField(default=False)
+    color = models.CharField(max_length=7, default='#ff0000')
     is_superuser = models.BooleanField(default=False)
-
     objects = CustomAccountManager()
 
     USERNAME_FIELD = 'email'
@@ -244,9 +246,10 @@ class Activity(models.Model):
     TYPE_PRIVATE = 'private'
     TYPE_COURT = 'court'
     TYPE_CLINIC = 'clinic'
+    TYPE_SEMIPRIVATE = 'semiprivate'
     TYPE_CHOICES = (
         (TYPE_PRIVATE, 'Private Lesson'),
-        (TYPE_PRIVATE, 'Semi-Private Lesson'),
+        (TYPE_SEMIPRIVATE, 'Semi-Private Lesson'),
         (TYPE_COURT, 'Court Reservation'),
         (TYPE_CLINIC, 'Clinic')
     )
@@ -257,7 +260,7 @@ class Activity(models.Model):
     event = models.ForeignKey(
         Event, on_delete=models.CASCADE, blank=True, null=True, default=None)
     title = models.CharField('Activity Title', max_length=120, blank=True)
-    recurrences = recurrence.fields.RecurrenceField(blank=True, null=True)
+    recurrences = RecurrenceField(blank=True, null=True)
     start_time = models.TimeField("Start Time", blank=True, null=True)
     end_time = models.TimeField("End Time", blank=True, null=True)
     capacity = models.IntegerField("Capacity", default=MAX_P_P_COURT)
@@ -269,12 +272,24 @@ class Activity(models.Model):
     def __str__(self):
         return f"{self.get_title()} - {self.get_dates_desc()}"
 
-    def save(self, *args, **kwargs):
+    def save(self, court=None, *args, **kwargs,):
         with transaction.atomic():
-            if self.pk is None:
+            if court:
+                self._create_activity_with_court(court, *args, **kwargs)
+            elif self.pk is None:
                 self._create_activity(*args, **kwargs)
             else:
                 self._update_activity(*args, **kwargs)
+
+    def _create_activity_with_court(self, court, *args, **kwargs):
+        with transaction.atomic():
+            super(Activity, self).save(*args, **kwargs)
+            try:
+                self.create_date_with_court(court)
+            except DateCreationError as dce:
+                self.delete()
+                raise ActivityCreationError(
+                    f"Error creating the Activity: {dce}.")
 
     def _create_activity(self, *args, **kwargs):
         with transaction.atomic():
@@ -465,6 +480,20 @@ class Activity(models.Model):
         except:
             return "No participants for no date"
 
+    def create_date_with_court(self, court) -> None:
+        try:
+            date = self.recurrences.occurrences()[0]
+            datetime_start = self.get_formatted_datetime(
+                date, self.start_time.hour, self.start_time.minute)
+            datetime_end = self.get_formatted_datetime(
+                date, self.end_time.hour, self.end_time.minute)
+            date = Date(activity=self, datetime_start=datetime_start,
+                        datetime_end=datetime_end, capacity=self.capacity)
+            date.save(court)
+        except:
+            raise DateCreationError(
+                "Could not assign the Court instance to the Date created")
+
     def update_date_instances(self, old_occurrences=None, limit=MAX_DATES) -> None:
         """
         Creates/deletes dates and adjusts courts based on the recurrence field and capacity. 
@@ -535,9 +564,13 @@ class Date(models.Model):
     REQUIRED_FIELDS = ['activity', 'datetime_start',
                        'datetime_end', 'capacity', 'court']
 
-    def save(self, *args, **kwargs):
+    def save(self, court=None, *args, **kwargs):
         with transaction.atomic():
-            if self.pk is None:
+            if court:
+                super(Date, self).save(*args, **kwargs)
+                court = Court.objects.get(name=court)
+                self.court.add(court)
+            elif self.pk is None:
                 num_courts_needed = math.ceil(self.capacity / MAX_P_P_COURT)
                 super(Date, self).save(*args, **kwargs)
                 courts = Date.get_open_courts(datetime_start=self.datetime_start,
@@ -555,6 +588,7 @@ class Date(models.Model):
                 except ValueError as ve:
                     raise DateUpdateError(
                         f"Could not update the Date {str(self)}: {ve}.")
+            return self
 
     def add_pro(self, pro):
         if pro.is_pro:

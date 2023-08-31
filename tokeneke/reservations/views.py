@@ -6,12 +6,12 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.shortcuts import get_object_or_404
 from .exceptions import *
-from django.http import HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseBadRequest
+from .serializers import *
 from django.http import JsonResponse
 from .models import Event, Activity, Date, Participation, Court, Member
-from datetime import date as datetimedate
-from datetime import datetime
-from django.utils.timezone import timedelta
+from datetime import date as datetimedate, datetime, time
+from django.utils.timezone import timedelta, make_aware
 import json
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -80,7 +80,7 @@ def edit_all_activities(request):
         'page_title': 'All Activities',
         'activities': all_activities,
         'titles': {
-            'All Events': len(all_activities)
+            'All Activities': len(all_activities)
         }
     })
 
@@ -187,6 +187,7 @@ def edit_activity(request, activity_id):
         try:
             form.full_clean()
             activity.save()
+            print(form.instance.recurrences)
             messages.success(
                 request, f"You edited the activity: {activity.title}.")
             return redirect('home')
@@ -210,10 +211,8 @@ def edit_date(request, date_id):
         form.instance.update_courts()
         messages.success(request, f"You edited the date: {date}.")
         return redirect("home")
-    participants = date.get_all_parts()
     return render(request, 'main/edit_date.html',
                   {'date': date,
-                   'participants': participants,
                    'activity': date.get_activity(),
                    'form': form})
 
@@ -395,13 +394,22 @@ def calendar_view(request, date):
         activity = date.activity
         duration = (date.datetime_end -
                     date.datetime_start).total_seconds() / (30 * 60)
+        host = None
+        if activity.type == Activity.TYPE_CLINIC:
+            first_participation = date.participation.order_by(
+                'date_registered').first()
+
+            if first_participation:
+                host = str(first_participation.member)
 
         # Get the list of court names using values_list()
         courts_list = list(date.court.values_list('name', flat=True))
-
+        pros_list = [serialize_pro(pro) for pro in date.assigned_pros.all()]
         date_dict = {
+            'host': host,
             'datetime_start': date.datetime_start.isoformat(),
             'datetime_end': date.datetime_end.isoformat(),
+            'pros': pros_list,
             'capacity': date.capacity,
             'court': courts_list,
             'duration': duration,
@@ -443,13 +451,81 @@ def get_available_pros(request):
     duration = request.GET.get('duration')
     datetime_start, datetime_end = calculate_datetime_range(
         date, time, duration)
+    datetime_start = make_aware(datetime_start)
+    datetime_end = make_aware(datetime_end)
 
     # Find the Pros (Members) who do not have a Participation in overlapping Dates
     available_pros = Member.get_available_pros(datetime_start, datetime_end)
 
     # Convert the queryset to a list of dictionaries
-    pros_list = [{'id': pro.id, 'name': str(pro)} for pro in available_pros]
-
-    print(pros_list)
+    pros_list = [{'id': pro.id, 'name': str(
+        pro), 'color': pro.color} for pro in available_pros]
 
     return JsonResponse({'pros': pros_list})
+
+
+def convert_to_rdate(input_date_str):
+    try:
+        # Parse the input date string
+        input_date = datetime.strptime(input_date_str, "%Y-%m-%d")
+        print(input_date)
+
+        # Format the date-time in ISO 8601 with UTC
+        iso8601_utc_date_str = input_date.strftime("%Y%m%dT050000Z")
+
+        print(iso8601_utc_date_str)
+        # Combine with "RDATE" prefix
+        rdate_str = "RDATE:" + iso8601_utc_date_str
+
+        return rdate_str
+    except ValueError:
+        # Handle invalid input date strings gracefully
+        return None
+
+
+def add_start_end_times(input_dict):
+    if 'time' in input_dict and 'duration' in input_dict:
+        # Parse the time from the 'time' key
+        time_str = input_dict['time']
+        start_time = datetime.strptime(time_str, '%H:%M').time()
+
+        # Parse the duration from the 'duration' key and calculate end time
+        duration_minutes = int(input_dict['duration'])
+        end_time = (datetime.combine(datetime.today(), start_time) +
+                    timedelta(minutes=duration_minutes)).time()
+
+        # Add 'start_time' and 'end_time' to the dictionary
+        input_dict['start_time'] = start_time
+        input_dict['end_time'] = end_time
+
+        keys_to_remove = ['time', 'duration', 'pro', 'court', 'date']
+        for key in keys_to_remove:
+            input_dict.pop(key, None)
+
+    return input_dict
+
+
+def activity_dict_to_data(request, dict):
+    data = dict.copy()
+    data['title'] = str(request.user)
+    try:
+        data['recurrences'] = convert_to_rdate(data['date'])
+        data = add_start_end_times(data)
+    except ValueError:
+        print("There was an error with convert")
+    return data
+
+
+def calendar_create_activity(request):
+    # It handles activity creation from the calendar view
+    if request.method == 'POST':
+
+        passed_dict = json.loads(json.loads(request.body.decode('utf-8')))
+        act_data = activity_dict_to_data(request, passed_dict)
+        activity = Activity(**act_data)
+        activity.save(court=passed_dict['court'])
+        date = activity.get_next_date()
+        if 'pro' in passed_dict:
+            date.assigned_pros.add(Member.objects.get(id=passed_dict['pro']))
+
+    return JsonResponse({'error': 'Invalid request method'})
