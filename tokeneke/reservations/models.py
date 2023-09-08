@@ -59,8 +59,8 @@ class Member(AbstractBaseUser, PermissionsMixin):
         (GENDER_FEMALE, 'Female'),
     ]
 
-    email = models.EmailField(_('E-mail'), unique=True)
-    member_n = models.CharField(_('Member #'), max_length=10, blank=True)
+    email = models.EmailField(_('e-mail'), unique=True)
+    member_n = models.CharField(_('member #'), max_length=10, blank=True)
     first_name = models.CharField(max_length=150, blank=True)
     last_name = models.CharField(max_length=150, blank=True)
     level = models.IntegerField(
@@ -82,16 +82,24 @@ class Member(AbstractBaseUser, PermissionsMixin):
 
     @staticmethod
     def get_available_pros(datetime_start, datetime_end):
+        # Find the dates that overlap with the specified time range
         overlapping_dates = Date.objects.filter(
-            Q(datetime_start__lt=datetime_end) &
-            Q(datetime_end__gt=datetime_start)
+            datetime_start__lt=datetime_end,
+            datetime_end__gt=datetime_start
         )
-        # Find the Pros (Members) who do not have a Participation in overlapping Dates
-        return Member.objects.filter(
+
+        # Extract the pros assigned to overlapping dates
+        busy_pros = overlapping_dates.values_list(
+            'assigned_pros', flat=True)
+
+        # Find the Pros (Members) who do not have overlapping assignments
+        available_pros = Member.objects.filter(
             is_pro=True
         ).exclude(
-            participation__date__in=overlapping_dates
+            id__in=busy_pros
         ).distinct()
+
+        return available_pros
 
     def __str__(self):
         if self.first_name and self.last_name:

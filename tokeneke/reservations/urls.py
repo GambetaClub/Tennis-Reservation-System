@@ -39,7 +39,7 @@ urlpatterns = [
          views.calendar_create_activity, name='calendar_create_activity'),
     path('my_activities', views.my_activities, name='my_activities'),
     path('calendar/', views.calendar_resolver, name='calendar'),
-    path('calendar/<str:date>', views.calendar_view, name='calendar_view')
+    path('calendar/<str:date>', views.calendar_view, name='calendar_view'),
 
 
 ]

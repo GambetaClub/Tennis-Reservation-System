@@ -16,7 +16,6 @@ const courtDurationOptions = {
 const schedulePanel = document.getElementById('schedule')
 
 function createActivity() {
-	console.log('Activity Data', activityData)
 	// Send a POST request to Django view
 	const csrfToken = $('input[name=csrfmiddlewaretoken]').val()
 	var jsonData = JSON.stringify(activityData)
@@ -60,7 +59,6 @@ document.addEventListener('DOMContentLoaded', function () {
 		// Date is a dictionary with all the properties of the Date object
 		let color = ''
 		let blockString = ''
-		console.log(date)
 		switch (date.activity.type) {
 			case 'clinic':
 				color = clinicColor
@@ -72,14 +70,20 @@ document.addEventListener('DOMContentLoaded', function () {
 				break
 			case 'private':
 				color = date.pros.length > 0 ? date.pros[0].color : privateColor
-				blockString = 'Private ' + (date.host ? date.host : '')
-				' ' + (date.pros ? date.pros.name : '')
+				blockString =
+					'Private ' +
+					(date.host ? date.host : '') +
+					' ' +
+					(date.pros ? date.pros[0].name : '')
 				break
 			case 'semiprivate':
 				color =
 					date.pros.length > 0 ? date.pros[0].color : semiPrivateColor
-				blockString = 'Semi-Private ' + (date.host ? date.host : '')
-				// date.pros[0].name
+				blockString =
+					'Semi-Private ' +
+					(date.host ? date.host : '') +
+					' ' +
+					(date.pros ? date.pros[0].name : '')
 				break
 			default:
 				color = 'gray' // Default color
@@ -128,6 +132,7 @@ const transformToAMPM = (time24) => {
 }
 
 async function askForDuration() {
+	// Returns the duration if the user selected one
 	const result = await Swal.fire({
 		title: 'How long would you like to play?',
 		icon: 'question',
@@ -142,7 +147,7 @@ async function askForDuration() {
 			}
 		},
 	})
-	activityData['duration'] = result.value
+	return result.value
 }
 
 function fetchAvailablePros() {
@@ -171,7 +176,7 @@ async function askForPro() {
 		})
 
 		// Show the Swal alert with the dynamic options
-		const { value: selectedProId } = await Swal.fire({
+		const { value: selectedPro } = await Swal.fire({
 			title: 'Select a Pro',
 			input: 'select',
 			inputOptions: proOptions,
@@ -188,20 +193,28 @@ async function askForPro() {
 			},
 		})
 
-		// Handle the selected Pro (e.g., store it or perform other actions)
-		if (selectedProId) {
-			activityData['pro'] = selectedProId
+		if (selectedPro) {
+			// Return an object with both ID and name
+			return {
+				id: selectedPro,
+				name: proOptions[selectedPro],
+			}
 		} else {
-			activityData['pro'] = null
+			return null
 		}
 	} catch (error) {
 		console.error('Error:', error)
+		return null
 	}
 }
 
 async function handleCourtReservation() {
 	activityData['type'] = 'court'
-	await askForDuration()
+	activityData['duration'] = await askForDuration()
+	if (activityData['duration']) {
+		return true
+	}
+	return false
 }
 
 async function handlePrivateLesson() {
@@ -226,11 +239,55 @@ async function handlePrivateLesson() {
 		activityData['type'] = 'semiprivate'
 	}
 
-	await askForDuration() // Wait for askForDuration to finish before proceeding
-	await askForPro() //
+	activityData['duration'] = await askForDuration()
+
+	if (activityData['duration']) {
+		const selectedPro = await askForPro()
+		if (selectedPro) {
+			activityData['pro'] = selectedPro.id
+			activityData['proName'] = selectedPro.name
+			return true
+		}
+	}
+
+	return false // Return false if something goes wrong or nothing is selected
+}
+
+async function askForConfirmation(callback) {
+	let description = `You want a <b>${
+		activityData['type']
+	}</b> at <b>${transformToAMPM(activityData['time'])}</b> on <b>${
+		activityData['court']
+	}</b>`
+	if (activityData['type'] != 'court') {
+		description += ` with <b>${activityData['proName']}</b>.`
+	} else {
+		description += `.`
+	}
+
+	const result = await Swal.fire({
+		title: 'Please confirm your activity',
+		icon: 'question',
+		html: description,
+		showCloseButton: true,
+		showDenyButton: true,
+		focusConfirm: false,
+		confirmButtonColor: courtColor,
+		denyButtonColor: privateColor,
+		confirmButtonText: 'Confirm',
+		confirmButtonAriaLabel: 'Confirm',
+		denyButtonText: 'Cancel',
+		denyButtonAriaLabel: 'Cancel',
+	})
+
+	if (result.isConfirmed) {
+		callback()
+	} else if (result.isDenied) {
+	}
 }
 
 async function handleCreation(callback) {
+	let isComplete = false
 	try {
 		const result = await Swal.fire({
 			title: 'What would you like to create?',
@@ -247,11 +304,13 @@ async function handleCreation(callback) {
 		})
 
 		if (result.isConfirmed) {
-			await handleCourtReservation()
+			isComplete = await handleCourtReservation()
 		} else if (result.isDenied) {
-			await handlePrivateLesson()
+			isComplete = await handlePrivateLesson()
 		}
-		callback()
+		if (isComplete) {
+			askForConfirmation(callback)
+		}
 	} catch (error) {
 		console.error('Error:', error)
 	}

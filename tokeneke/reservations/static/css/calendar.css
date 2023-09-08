@@ -169,7 +169,13 @@ body {
 	height: 100%;
 	padding: 4px 6px;
 	cursor: pointer;
-	&:hover {
-		background-color: darken(red, 2%);
-	}
+	overflow: hidden;
+    text-overflow: ellipsis; 
+	transition: all 0.2s
+}
+
+.block:hover {
+	filter: brightness(0.8);
+	height: 140%;
+	width: 110%;
 }

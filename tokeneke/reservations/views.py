@@ -6,11 +6,11 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.shortcuts import get_object_or_404
 from .exceptions import *
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponseBadRequest
 from .serializers import *
 from django.http import JsonResponse
 from .models import Event, Activity, Date, Participation, Court, Member
-from datetime import date as datetimedate, datetime, time
+from datetime import date as datetimedate, datetime
 from django.utils.timezone import timedelta, make_aware
 import json
 from django.contrib.auth import authenticate, login, logout
@@ -395,7 +395,7 @@ def calendar_view(request, date):
         duration = (date.datetime_end -
                     date.datetime_start).total_seconds() / (30 * 60)
         host = None
-        if activity.type == Activity.TYPE_CLINIC:
+        if activity.type == Activity.TYPE_COURT:
             first_participation = date.participation.order_by(
                 'date_registered').first()
 
@@ -498,7 +498,8 @@ def add_start_end_times(input_dict):
         input_dict['start_time'] = start_time
         input_dict['end_time'] = end_time
 
-        keys_to_remove = ['time', 'duration', 'pro', 'court', 'date']
+        keys_to_remove = ['time', 'duration',
+                          'pro', 'court', 'date', 'proName']
         for key in keys_to_remove:
             input_dict.pop(key, None)
 
@@ -519,13 +520,17 @@ def activity_dict_to_data(request, dict):
 def calendar_create_activity(request):
     # It handles activity creation from the calendar view
     if request.method == 'POST':
-
-        passed_dict = json.loads(json.loads(request.body.decode('utf-8')))
-        act_data = activity_dict_to_data(request, passed_dict)
-        activity = Activity(**act_data)
-        activity.save(court=passed_dict['court'])
-        date = activity.get_next_date()
-        if 'pro' in passed_dict:
-            date.assigned_pros.add(Member.objects.get(id=passed_dict['pro']))
-
+        try:
+            passed_dict = json.loads(json.loads(request.body.decode('utf-8')))
+            act_data = activity_dict_to_data(request, passed_dict)
+            activity = Activity(**act_data)
+            activity.save(court=passed_dict['court'])
+            date = activity.get_next_date()
+            Participation.objects.create(date=date, member=request.user)
+            if 'pro' in passed_dict:
+                date.assigned_pros.add(
+                    Member.objects.get(id=passed_dict['pro']))
+            return JsonResponse({'success': 'Activity created!'})
+        except:
+            return JsonResponse({'error': 'There was an error creating the activity'})
     return JsonResponse({'error': 'Invalid request method'})
