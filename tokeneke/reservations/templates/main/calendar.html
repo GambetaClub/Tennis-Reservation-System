@@ -3,11 +3,20 @@
 {% load static %}
 <link rel="stylesheet" href="{% static 'css/calendar.css' %}" />
 <script>
-	var dates = JSON.parse(`{{ dates | safe }}`)
+	const currentDate = new Date("{{ date|date:'Y-m-d' }}");
+	const dates = JSON.parse(`{{ dates | safe }}`)
 </script>
 {% endblock head %}
 {% block content %}
-<h4 class="date-display">{{ date|date:"l d, F Y" }}</h4>
+<div class="centered-row">
+    <div class="date-navigation">
+        <button id="previous-day">&lt;</button>
+    </div>
+    <h4 class="date-display">{{ date|date:"l d, F Y" }}</h4>
+    <div class="date-navigation">
+        <button id="next-day">&gt;</button>
+    </div>
+</div>
 {% csrf_token %}
 <div class="panel">
 	<div class="schedule" id="schedule">

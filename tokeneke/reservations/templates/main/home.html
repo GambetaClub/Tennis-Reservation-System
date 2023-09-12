@@ -131,7 +131,7 @@
                             </div>
                         {% else %}
                             <div class="project-box-wrapper">
-                                <div class="project-box court">
+                                <div class="project-box {{activity.type}}">
                                     <div class="project-box-header">
                                         <span>{{activity.print_next_date}}</span>
                                         {% if user.is_staff %}
@@ -144,14 +144,14 @@
                                     </div>
                                     <div class="project-box-content-header">
                                         <a href="{% url 'edit_activity' activity.id %}"></a>
-                                        <p class="box-content-header">{{ activity.get_type_display }}</p>
+                                        <p class="box-content-header">{{ activity.get_title }}</p>
                                         <p class="box-content-subheader">
                                             {{activity.get_next_date.print_courts}} <br>
                                             {{activity.get_next_date.get_formatted_duration}} <br>
-                                            {% if activity.type == 'private' %}
-                                                Pro: {{activity.get_next_date.get_pro}}
-                                            {% else %}
+                                            {% if activity.type == 'court' %}
                                                 Host: {{activity.get_next_date.get_host}}
+                                            {% else %}
+                                                Pro: {{activity.get_next_date.print_pros}}
                                             {% endif %}
                                         </p>
                                     </div>

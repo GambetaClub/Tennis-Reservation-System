@@ -22,7 +22,7 @@
   --search-area-bg: #fff;
   --star: #1ff1c2e;
   --message-btn: rgba(255,255,255,1);
-  --club-color: #4067f9;
+  --club-color: green;
   --men-color: #4067f9;
   --men-bg-color: #4067f9;
   --ladies-color: #df3670;
@@ -31,6 +31,10 @@
   --mixed-bg-color: #fee4cb;
   --court-color: #34c471;
   --court-bg-color: #c8f7dc;
+  --private-color: #960018;
+  --private-bg-color: #ffacbb;
+  --semiprivate: #feb5bb;
+  --semiprivate-bg-color: #ef989f;
 }
 
 .dark:root {
@@ -499,6 +503,30 @@ a {
 
 .court a {
   color: var(--court-color);
+}
+
+.private {
+  background-color: var(--private-bg-color);
+}
+
+.private span.box-progress {
+  background-color: var(--private-color);
+}
+
+.private a {
+  color: var(--private-color);
+}
+
+.semiprivate {
+  background-color: var(--semiprivate-bg-color);
+}
+
+.semiprivate span.box-progress {
+  background-color: var(--semiprivate-color);
+}
+
+.semiprivate a {
+  color: var(--semiprivate-color);
 }
 
 .project-box-header {

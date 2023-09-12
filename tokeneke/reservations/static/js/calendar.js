@@ -37,6 +37,29 @@ function createActivity() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
+	const previousDayButton = document.getElementById('previous-day')
+	const nextDayButton = document.getElementById('next-day')
+
+	previousDayButton.addEventListener('click', function (e) {
+		e.preventDefault()
+		navigateDate(currentDate, 'previous')
+	})
+
+	nextDayButton.addEventListener('click', function (e) {
+		e.preventDefault()
+		navigateDate(currentDate, 'next')
+	})
+
+	function navigateDate(date, action) {
+		if (action === 'previous') {
+			date.setDate(date.getDate() - 1)
+		} else if (action === 'next') {
+			date.setDate(date.getDate() + 1)
+		}
+		const formattedDate = date.toISOString().split('T')[0] // Format as 'YYYY-MM-DD'
+		window.location.href = `/calendar/${formattedDate}`
+	}
+
 	const cellHeight = document.querySelector('.schedule-cell').offsetHeight
 
 	function createReservationBlock(date) {
@@ -235,6 +258,7 @@ async function handlePrivateLesson() {
 
 	if (result.isConfirmed) {
 		activityData['type'] = 'private'
+		activityData['capacity'] = 1
 	} else if (result.isDenied) {
 		activityData['type'] = 'semiprivate'
 	}

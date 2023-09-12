@@ -318,6 +318,8 @@ class Activity(models.Model):
                 self._update_activity_times()
             elif self._dates_or_capacity_changed(old_occur, old_act):
                 self._update_activity_dates(old_occur)
+            else:
+                super(Activity, self).save()
 
     def _get_sorted_occurrences(self, activity):
         return sorted(list(activity.recurrences.occurrences(dtend=DATE_LIMIT)))
@@ -423,10 +425,10 @@ class Activity(models.Model):
         return self.type == Activity.TYPE_CLINIC
 
     def get_title(self):
-        try:
+        if self.is_clinic():
             return self.event.title
-        except:
-            return str(f"{self.title}")
+        else:
+            return str(f"{self.get_type_display()}: {self.title}")
 
     def get_all_dates(self):
         return Date.objects.filter(activity__id=self.id).order_by('datetime_start')
@@ -449,14 +451,6 @@ class Activity(models.Model):
         future_dates = Date.objects.filter(
             activity=self, datetime_start__gte=timezone.now())
         future_dates.delete()
-
-    def get_host(self):
-        if self.get_next_date():
-            host = Participation.objects.filter(
-                date__id=self.get_next_date().id).order_by('date_registered').first()
-            if host:
-                return host.member
-        return None
 
     def get_dates_desc(self):
         # Returns a string with the description of the fut or past dates of the activity
@@ -510,10 +504,10 @@ class Activity(models.Model):
         dates.
         """
         # It needs to be an unaware date, otherwise, it creates errors with recurrences.
-        today = datetime.today()
+        yesterday = datetime.today() - timedelta(days=1)
 
         to_create = list(self.recurrences.between(
-            today, DATE_LIMIT))[:limit]
+            yesterday, DATE_LIMIT))[:limit]
         # Checks if old_occurrences has been passed as an argument.
         if old_occurrences:
             # Based on the sets, to_create only has the dates that have been added.
@@ -521,7 +515,7 @@ class Activity(models.Model):
                 list(set(to_create) - set(old_occurrences)))[:limit]
             # Based on the sets, to_delete only has the dates that have been removed.
             to_delete = sorted(list(set(old_occurrences) -
-                                    set(self.recurrences.between(today, DATE_LIMIT_DELETION))))
+                                    set(self.recurrences.between(yesterday, DATE_LIMIT_DELETION))))
             for date in to_delete:
                 datetime_start = self.get_formatted_datetime(
                     date, self.start_time.hour, self.start_time.minute)
@@ -797,6 +791,13 @@ class Date(models.Model):
             return pros_string
         else:
             return "No Pro Assigned"
+
+    def get_host(self):
+        host = Participation.objects.filter(
+            date__id=self.id).order_by('date_registered').first()
+        if host:
+            return host.member
+        return None
 
 
 class Participation(models.Model):

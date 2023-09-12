@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.shortcuts import get_object_or_404
 from .exceptions import *
-from django.http import HttpResponseBadRequest
+from django.http import HttpResponse
 from .serializers import *
 from django.http import JsonResponse
 from .models import Event, Activity, Date, Participation, Court, Member
@@ -182,7 +182,17 @@ def edit_profile(request):
 @staff_member_required
 def edit_activity(request, activity_id):
     activity = get_object_or_404(Activity, id=activity_id)
+
+    # Check for a DELETE request to delete the activity
+    if request.method == "DELETE":
+        activity.delete()
+        messages.success(
+            request, f"The activity '{activity.title}' has been deleted.")
+        # Return a success response (HTTP 204 No Content)
+        return HttpResponse(status=204)
+
     form = CreateActivityForm(request.POST or None, instance=activity)
+
     if request.method == "POST" and form.is_valid():
         try:
             form.full_clean()
@@ -193,6 +203,7 @@ def edit_activity(request, activity_id):
             return redirect('home')
         except ActivityUpdateError as e:
             messages.error(request, e)
+
     return render(request, 'main/edit_activity.html', {
         'event': activity.event,
         'activity': activity,
@@ -523,6 +534,7 @@ def calendar_create_activity(request):
         try:
             passed_dict = json.loads(json.loads(request.body.decode('utf-8')))
             act_data = activity_dict_to_data(request, passed_dict)
+            print(act_data)
             activity = Activity(**act_data)
             activity.save(court=passed_dict['court'])
             date = activity.get_next_date()

@@ -1,12 +1,17 @@
 {% extends 'main/base.html' %}
 
 {% block head %}
+<script>
+    var editActivityURL = "{% url 'edit_activity' activity.id %}";
+    var homeURL = "{% url 'home' %}";
+</script>
 {% load static %}
 <link rel="stylesheet" href="{% static 'css/forms.css' %}" />
 <script src="{% static 'js/forms.js' %}"></script>
 {% endblock head %}
 
 {% block content %}
+
 <form method="post" action="{% url 'edit_activity' activity.id %}">
     <div class="form-container">
         {% csrf_token %} {{ form.media }}
@@ -126,5 +131,11 @@
             {% endfor %}    
         </tbody> 
       </table>
+
+      <div class="row justify-content-center">
+        <button type="button" class="btn btn-danger mb-2" id="delete-activity">
+            Delete Activity
+        </button>
+    </div>
 </div>
 {% endblock content %}
