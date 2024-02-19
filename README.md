@@ -11,12 +11,12 @@ Coach Capability: Assign coaches to events or sessions, allowing members to book
 ## Installation
 To run this application locally, make sure you have Docker installed on your system.
 
-### Clone this repository to your local machine:
+#### Clone this repository to your local machine:
 
 ```bash
 git clone https://github.com/your/repository.git
-Navigate to the project directory:
 ```
+#### Navigate to the project directory:
 
 ```bash
 Copy code
