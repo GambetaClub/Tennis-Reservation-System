@@ -230,7 +230,7 @@ def edit_date(request, date_id):
 
 @login_required
 def event(request, event_id):
-    event = Event.objects.get(id=event_id)
+    event = get_object_or_404(Event, id=event_id)
     dates = event.get_fut_dates(20)
     if dates:
         user_dates = Date.objects.filter(
@@ -242,8 +242,8 @@ def event(request, event_id):
 
 @login_required()
 def event_participants(request, event_id):
-    event = Event.objects.get(id=event_id)
-    on_courts = []
+    event = get_object_or_404(Event, id=event_id)
+    on_court = []
     on_wait = []
     # Returns the first date on the list, if empty then it returns None
     next_date = next(iter(event.get_fut_dates(1)), None)
@@ -252,7 +252,7 @@ def event_participants(request, event_id):
         on_wait = next_date.get_parts_on_wait()
     return render(request, 'main/court_assign.html', {
         'event': event,
-        'on_court': next_date.get_parts_on_court(),
+        'on_court': on_court,
         'on_wait': on_wait})
 
 
@@ -313,5 +313,6 @@ def add_participant(request):
         return HttpResponseBadRequest("Not a post")
 
 
+@login_required
 def calendar(request):
     return render(request, 'main/calendar.html')

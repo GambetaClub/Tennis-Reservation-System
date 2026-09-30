@@ -14,21 +14,24 @@ To run this application locally, make sure you have Docker installed on your sys
 #### Clone this repository to your local machine:
 
 ```bash
-git clone https://github.com/your/repository.git
+git clone https://github.com/GambetaClub/Tennis-Reservation-System.git
 ```
 #### Navigate to the project directory:
 
 ```bash
-Copy code
-cd tokeneke
+cd Tennis-Reservation-System
 ```
 #### Build the Docker image:
 ```bash
-docker-compose build
+docker compose build
 ```
 #### Start the Docker containers:
 ```bash
-docker-compose up
+docker compose up
+```
+#### Create an admin account:
+```bash
+docker compose run --rm app sh -c "python manage.py createsuperuser"
 ```
 Access the application in your web browser at http://localhost:8000.
 
@@ -36,21 +39,24 @@ Access the application in your web browser at http://localhost:8000.
 Once the application is running, you can access the following endpoints:
 
 /admin: Access the Django admin panel to manage users, events, courts, and other data.
-/accounts: User authentication and profile management.
-/events: View, create, and manage events.
-/reservations: Make and manage court reservations.
-/calendar: Visualize court availability and scheduled events.
+/login, /register, /reset_password: User authentication.
+/edit_profile: Profile management.
+/, /my_events, /event/<id>: View events and register for dates.
+/create_event, /create_clinic, /edit_all_events: Create and manage events (staff only).
+/event/<id>/participants: Court assignment for the next date.
+/calendar: Visualize scheduled events.
 
 ### Dependencies
 This application is built with Django, and PostgreSQL as the database backend. Additional dependencies can be found in the requirements.txt file.
 
 ### Configuration
-You can customize the application settings by modifying the .env file. Here are some common configurations:
+Development settings live in docker-compose.yml. For deployment, copy .env.sample to .env and fill it in; docker-compose-deploy.yml reads it. Settings:
 
 DEBUG: Set to True to enable debug mode.
 SECRET_KEY: Secret key used for cryptographic signing.
-DATABASE_URL: URL for connecting to the PostgreSQL database.
-ALLOWED_HOSTS: List of allowed hosts for the application.
+DB_NAME, DB_USER, DB_PASS: PostgreSQL database credentials.
+ALLOWED_HOSTS: Comma-separated list of allowed hosts for the application.
+EMAIL_HOST_USER, EMAIL_HOST_PASSWORD: Gmail account and app password used to send password reset emails.
 
 ## Contributing
 Contributions are welcome! If you would like to contribute to this project, please fork the repository, make your changes, and submit a pull request.
