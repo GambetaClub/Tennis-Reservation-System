@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 import recurrence.fields
 from django.utils.timezone import make_aware
 from django.utils import timezone
-import pytz
+from zoneinfo import ZoneInfo
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from datetime import datetime, timedelta
 from django.core.exceptions import ValidationError
@@ -17,11 +17,11 @@ Helper functions
 
 
 def make_date_aware(date):
-    return make_aware(date, timezone=pytz.timezone("America/New_York"))
+    return make_aware(date, timezone=ZoneInfo("America/New_York"))
 
 
 def is_today(date):
-    aware_date = make_aware(date, timezone=pytz.timezone(
+    aware_date = make_aware(date, timezone=ZoneInfo(
         "America/New_York")).strftime("%d %b, %Y")
     today = timezone.now().date().strftime("%d %b, %Y")
     return aware_date == today
@@ -384,7 +384,7 @@ class Date(models.Model):
         all_parts = self.get_all_parts()
         on_court = all_parts[:self.capacity]
         # Order the participants by their level
-        on_court.sort(key=lambda participant: participant.level, reverse=True)
+        on_court.sort(key=lambda participant: participant.get_level(), reverse=True)
         return on_court
 
     def get_parts_on_wait(self):

@@ -20,11 +20,12 @@ services:
       - DB_NAME=devdb
       - DB_USER=devuser
       - DB_PASS=changeme
+      - EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
     depends_on:
       - db 
       
   db:
-    image: postgres:13-alpine
+    image: postgres:17-alpine
     environment:
       - POSTGRES_DB=devdb
       - POSTGRES_USER=devuser
